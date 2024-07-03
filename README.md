@@ -5,9 +5,9 @@
 The go-cache library is a high-performance, in-memory key-value store written in Go, designed to provide fast, temporary storage for your applications. It is suitable for caching purposes where data needs to be accessed quickly and frequently, but persistence is not required.
 
 ![CI](https://github.com/pzentenoe/go-cache/actions/workflows/actions.yml/badge.svg)
-![Quality Gate](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=alert_status&token=sqb_59bbc1298f38ee74664e3ca59a49e1550b32b599)
-![Coverage](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=coverage&token=sqb_59bbc1298f38ee74664e3ca59a49e1550b32b599)
-![Bugs](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=bugs&token=sqb_59bbc1298f38ee74664e3ca59a49e1550b32b599)
+![Quality Gate](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=alert_status&token=sqb_308a7e8ba0f56c9872f5db0aa7ec5ed3a491ab1e)
+![Coverage](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=coverage&token=sqb_308a7e8ba0f56c9872f5db0aa7ec5ed3a491ab1e)
+![Bugs](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=bugs&token=sqb_308a7e8ba0f56c9872f5db0aa7ec5ed3a491ab1e)
 
 ### Buy Me a Coffee
 
