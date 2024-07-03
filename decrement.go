@@ -2,10 +2,6 @@ package cache
 
 import "fmt"
 
-type decrementer interface {
-	Decrement(n int64) error
-}
-
 // Decrement an item of type int, int8, int16, int32, int64, uintptr, uint,
 // uint8, uint32, or uint64, float32 or float64 by n. Returns an error if the
 // item's value is not an integer, if it was not found, or if it is not
