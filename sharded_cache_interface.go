@@ -2,6 +2,7 @@ package cache
 
 import "time"
 
+// ShardedCache interface
 type ShardedCache interface {
 	Set(k string, x any, d time.Duration)
 	Add(k string, x any, d time.Duration) error

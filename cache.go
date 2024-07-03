@@ -7,14 +7,15 @@ import (
 )
 
 const (
-	// For use with functions that take an expiration time.
+	// NoExpiration For use with functions that take an expiration time.
 	NoExpiration time.Duration = -1
-	// For use with functions that take an expiration time. Equivalent to
+	// DefaultExpiration For use with functions that take an expiration time. Equivalent to
 	// passing in the same expiration duration as was given to New() or
 	// NewFrom() when the cache was created (e.g. 5 minutes.)
 	DefaultExpiration time.Duration = 0
 )
 
+// Cache struct for cache control
 type Cache struct {
 	defaultExpiration time.Duration
 	items             map[string]Item
@@ -23,7 +24,7 @@ type Cache struct {
 	janitor           *janitor
 }
 
-// Add an item to the cache, replacing any existing item. If the duration is 0
+// Set Add an item to the cache, replacing any existing item. If the duration is 0
 // (DefaultExpiration), the cache's default expiration time is used. If it is -1
 // (NoExpiration), the item never expires.
 func (c *Cache) Set(k string, x any, d time.Duration) {
@@ -56,7 +57,7 @@ func (c *Cache) set(k string, x any, d time.Duration) {
 	}
 }
 
-// Add an item to the cache, replacing any existing item, using the default
+// SetDefault Add an item to the cache, replacing any existing item, using the default
 // expiration.
 func (c *Cache) SetDefault(k string, x any) {
 	c.Set(k, x, DefaultExpiration)
@@ -75,7 +76,7 @@ func (c *Cache) Add(k string, x any, d time.Duration) error {
 	return nil
 }
 
-// Set a new value for the cache key only if it already exists, and the existing
+// Replace Set a new value for the cache key only if it already exists, and the existing
 // item hasn't expired. Returns an error otherwise.
 func (c *Cache) Replace(k string, x any, d time.Duration) error {
 	c.mu.Lock()
@@ -158,7 +159,7 @@ type keyAndValue struct {
 	value any
 }
 
-// Delete all expired items from the cache.
+// DeleteExpired Delete all expired items from the cache.
 func (c *Cache) DeleteExpired() {
 	var evictedItems []keyAndValue
 	c.mu.Lock()
@@ -176,7 +177,7 @@ func (c *Cache) DeleteExpired() {
 	}
 }
 
-// Sets an (optional) function that is called with the key and value when an
+// OnEvicted Sets an (optional) function that is called with the key and value when an
 // item is evicted from the cache. (Including when it is deleted manually, but
 // not when it is overwritten.) Set to nil to disable.
 func (c *Cache) OnEvicted(f func(string, any)) {
@@ -185,7 +186,7 @@ func (c *Cache) OnEvicted(f func(string, any)) {
 	c.onEvicted = f
 }
 
-// Delete all items from the cache.
+// Flush Delete all items from the cache.
 func (c *Cache) Flush() {
 	c.mu.Lock()
 	defer c.mu.Unlock()

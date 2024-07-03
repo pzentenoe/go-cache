@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-// Write the cache's items (using Gob) to an io.Writer.
+// Save Write the cache's items (using Gob) to an io.Writer.
 func (c *Cache) Save(w io.Writer) (err error) {
 	enc := gob.NewEncoder(w)
 	defer func() {
@@ -24,7 +24,7 @@ func (c *Cache) Save(w io.Writer) (err error) {
 	return
 }
 
-// Save the cache's items to the given filename, creating the file if it
+// SaveFile Save the cache's items to the given filename, creating the file if it
 // doesn't exist, and overwriting it if it does.
 func (c *Cache) SaveFile(fname string) error {
 	fp, err := os.Create(fname)
@@ -38,7 +38,7 @@ func (c *Cache) SaveFile(fname string) error {
 	return nil
 }
 
-// Add (Gob-serialized) cache items from an io.Reader, excluding any items with
+// Load Add (Gob-serialized) cache items from an io.Reader, excluding any items with
 // keys that already exist (and haven't expired) in the current cache.
 func (c *Cache) Load(r io.Reader) error {
 	dec := gob.NewDecoder(r)
@@ -56,7 +56,7 @@ func (c *Cache) Load(r io.Reader) error {
 	return nil
 }
 
-// Load and add cache items from the given filename, excluding any items with
+// LoadFile Load and add cache items from the given filename, excluding any items with
 // keys that already exist in the current cache.
 func (c *Cache) LoadFile(fname string) error {
 	fp, err := os.Open(fname)
