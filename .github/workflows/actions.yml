@@ -62,7 +62,7 @@ jobs:
           SONAR_HOST_URL: ${{ vars.SONARQUBE_URL }}
         with:
           args: >
-            -Dsonar.projectKey=httpclient-call-go
+            -Dsonar.projectKey=go-cache
             -Dsonar.sources=.
             -Dsonar.go.coverage.reportPaths=coverage.out
             -Dsonar.exclusions=**/*_test.go,**/main.go
