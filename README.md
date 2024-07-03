@@ -8,6 +8,7 @@ The go-cache library is a high-performance, in-memory key-value store written in
 [![Go Report Card](https://goreportcard.com/badge/github.com/pzentenoe/go-cache)](https://goreportcard.com/report/github.com/pzentenoe/go-cache)
 ![License](https://img.shields.io/github/license/pzentenoe/go-cache.svg)
 ![GitHub issues](https://img.shields.io/github/issues/pzentenoe/go-cache.svg)
+![GitHub release](https://img.shields.io/github/v/release/pzentenoe/go-cache.svg)
 ![GitHub last commit](https://img.shields.io/github/last-commit/pzentenoe/go-cache.svg)
 ![Quality Gate](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=alert_status&token=sqb_308a7e8ba0f56c9872f5db0aa7ec5ed3a491ab1e)
 ![Coverage](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=coverage&token=sqb_308a7e8ba0f56c9872f5db0aa7ec5ed3a491ab1e)
