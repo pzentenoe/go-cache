@@ -6,6 +6,9 @@ The go-cache library is a high-performance, in-memory key-value store written in
 
 ![CI](https://github.com/pzentenoe/go-cache/actions/workflows/actions.yml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pzentenoe/go-cache)](https://goreportcard.com/report/github.com/pzentenoe/go-cache)
+![License](https://img.shields.io/github/license/pzentenoe/go-cache.svg)
+![GitHub issues](https://img.shields.io/github/issues/pzentenoe/go-cache.svg)
+![GitHub last commit](https://img.shields.io/github/last-commit/pzentenoe/go-cache.svg)
 ![Quality Gate](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=alert_status&token=sqb_308a7e8ba0f56c9872f5db0aa7ec5ed3a491ab1e)
 ![Coverage](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=coverage&token=sqb_308a7e8ba0f56c9872f5db0aa7ec5ed3a491ab1e)
 ![Bugs](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=bugs&token=sqb_308a7e8ba0f56c9872f5db0aa7ec5ed3a491ab1e)
@@ -169,7 +172,7 @@ Get(k string) (any, bool)
 ```
 Gets an item from the cache. Returns the item or nil, and a boolean indicating whether the key was found.
 
-#### GetWithExpiration 
+#### GetWithExpiration
 ```go
 GetWithExpiration(k string) (any, time.Time, bool)
 ```

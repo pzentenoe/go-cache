@@ -3,9 +3,10 @@ package cache
 import (
 	"bytes"
 	"encoding/gob"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCache_Save(t *testing.T) {
