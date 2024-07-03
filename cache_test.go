@@ -23,13 +23,13 @@ func TestCache_Set(t *testing.T) {
 	})
 
 	t.Run("Set item with custom expiration", func(t *testing.T) {
-		cache.Set("key3", "value3", 1*time.Second)
+		cache.Set("key3", "value3", 100*time.Millisecond)
 		if v, found := cache.Get("key3"); !found || v != "value3" {
 			t.Errorf("Expected to find key3 with value 'value3', got %v", v)
 		}
 
 		// Wait for key3 to expire
-		time.Sleep(2 * time.Second)
+		time.Sleep(200 * time.Millisecond)
 		if _, found := cache.Get("key3"); found {
 			t.Error("Expected key3 to be expired")
 		}
@@ -77,7 +77,7 @@ func TestCache_Add(t *testing.T) {
 	})
 
 	t.Run("Add item with custom expiration", func(t *testing.T) {
-		err := cache.Add("key3", "value3", 1*time.Second)
+		err := cache.Add("key3", "value3", 100*time.Millisecond)
 		if err != nil {
 			t.Errorf("Expected no error, got %v", err)
 		}
@@ -86,7 +86,7 @@ func TestCache_Add(t *testing.T) {
 		}
 
 		// Wait for key3 to expire
-		time.Sleep(2 * time.Second)
+		time.Sleep(200 * time.Millisecond)
 		if _, found := cache.Get("key3"); found {
 			t.Error("Expected key3 to be expired")
 		}
@@ -115,8 +115,8 @@ func TestCache_Replace(t *testing.T) {
 	})
 
 	t.Run("Replace expired item", func(t *testing.T) {
-		cache.Set("key3", "value3", 1*time.Second)
-		time.Sleep(2 * time.Second)
+		cache.Set("key3", "value3", 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		err := cache.Replace("key3", "newValue3", DefaultExpiration)
 		if err == nil {
 			t.Error("Expected error when replacing expired item, got nil")
@@ -143,8 +143,8 @@ func TestCache_Get(t *testing.T) {
 	})
 
 	t.Run("Get expired item", func(t *testing.T) {
-		cache.Set("key3", "value3", 1*time.Second)
-		time.Sleep(2 * time.Second)
+		cache.Set("key3", "value3", 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		_, found := cache.Get("key3")
 		if found {
 			t.Error("Expected not to find an expired item, but found one")
@@ -171,8 +171,8 @@ func TestCache_GetWithExpiration(t *testing.T) {
 	})
 
 	t.Run("GetWithExpiration expired item", func(t *testing.T) {
-		cache.Set("key3", "value3", 1*time.Second)
-		time.Sleep(2 * time.Second)
+		cache.Set("key3", "value3", 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		_, _, found := cache.GetWithExpiration("key3")
 		if found {
 			t.Error("Expected not to find an expired item, but found one")
@@ -222,8 +222,8 @@ func TestCache_DeleteExpired(t *testing.T) {
 	})
 
 	t.Run("DeleteExpired with expired items", func(t *testing.T) {
-		cache.Set("key2", "value2", 1*time.Second)
-		time.Sleep(2 * time.Second)
+		cache.Set("key2", "value2", 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		cache.DeleteExpired()
 		_, found := cache.Get("key2")
 		if found {

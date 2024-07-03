@@ -42,10 +42,10 @@ func TestCache_Items(t *testing.T) {
 
 	cache.Set("key1", "value1", DefaultExpiration)
 	cache.Set("key2", "value2", DefaultExpiration)
-	cache.Set("key3", "value3", 1*time.Second)
+	cache.Set("key3", "value3", 100*time.Millisecond)
 
 	// Esperar a que caduque key3
-	time.Sleep(2 * time.Second)
+	time.Sleep(200 * time.Millisecond)
 
 	items := cache.Items()
 	if len(items) != 2 {
@@ -68,10 +68,10 @@ func TestCache_ItemCount(t *testing.T) {
 
 	cache.Set("key1", "value1", DefaultExpiration)
 	cache.Set("key2", "value2", DefaultExpiration)
-	cache.Set("key3", "value3", 1*time.Second)
+	cache.Set("key3", "value3", 100*time.Millisecond)
 
 	// Esperar a que caduque key3
-	time.Sleep(2 * time.Second)
+	time.Sleep(200 * time.Millisecond)
 
 	count := cache.ItemCount()
 	if count != 3 {

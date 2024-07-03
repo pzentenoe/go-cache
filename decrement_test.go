@@ -34,8 +34,8 @@ func TestCache_Decrement(t *testing.T) {
 
 	// Caso: Decrement int with expiration
 	t.Run("Decrement int with expiration", func(t *testing.T) {
-		cache.Set("intExpKey", 10, 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("intExpKey", 10, 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		err := cache.Decrement("intExpKey", 5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -109,8 +109,8 @@ func TestCache_DecrementFloat(t *testing.T) {
 	})
 
 	t.Run("Decrement float with expiration", func(t *testing.T) {
-		cache.Set("floatExpKey", float64(20.5), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("floatExpKey", float64(20.5), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		err := cache.DecrementFloat("floatExpKey", 10.5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -155,8 +155,8 @@ func TestCache_DecrementInt(t *testing.T) {
 	})
 
 	t.Run("Decrement int with expiration", func(t *testing.T) {
-		cache.Set("intExpKey", 20, 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("intExpKey", 20, 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementInt("intExpKey", 5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -201,8 +201,8 @@ func TestCache_DecrementInt8(t *testing.T) {
 	})
 
 	t.Run("Decrement int8 with expiration", func(t *testing.T) {
-		cache.Set("int8ExpKey", int8(20), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("int8ExpKey", int8(20), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementInt8("int8ExpKey", 5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -247,8 +247,8 @@ func TestCache_DecrementInt16(t *testing.T) {
 	})
 
 	t.Run("Decrement int16 with expiration", func(t *testing.T) {
-		cache.Set("int16ExpKey", int16(20), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("int16ExpKey", int16(20), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementInt16("int16ExpKey", 5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -293,8 +293,8 @@ func TestCache_DecrementInt32(t *testing.T) {
 	})
 
 	t.Run("Decrement int32 with expiration", func(t *testing.T) {
-		cache.Set("int32ExpKey", int32(20), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("int32ExpKey", int32(20), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementInt32("int32ExpKey", 5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -339,8 +339,8 @@ func TestCache_DecrementInt64(t *testing.T) {
 	})
 
 	t.Run("Decrement int64 with expiration", func(t *testing.T) {
-		cache.Set("int64ExpKey", int64(20), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("int64ExpKey", int64(20), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementInt64("int64ExpKey", 5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -388,8 +388,8 @@ func TestCache_DecrementUint(t *testing.T) {
 
 	// Caso: Decrement uint with expiration
 	t.Run("Decrement uint with expiration", func(t *testing.T) {
-		cache.Set("uintExpKey", uint(20), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("uintExpKey", uint(20), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementUint("uintExpKey", 5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -438,8 +438,8 @@ func TestCache_DecrementUintptr(t *testing.T) {
 
 	// Caso: Decrement uintptr with expiration
 	t.Run("Decrement uintptr with expiration", func(t *testing.T) {
-		cache.Set("uintptrExpKey", uintptr(20), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("uintptrExpKey", uintptr(20), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementUintptr("uintptrExpKey", 5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -486,8 +486,8 @@ func TestCache_DecrementUint8(t *testing.T) {
 	})
 
 	t.Run("Decrement uint8 with expiration", func(t *testing.T) {
-		cache.Set("uint8ExpKey", uint8(20), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("uint8ExpKey", uint8(20), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementUint8("uint8ExpKey", 5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -532,8 +532,8 @@ func TestCache_DecrementUint16(t *testing.T) {
 	})
 
 	t.Run("Decrement uint16 with expiration", func(t *testing.T) {
-		cache.Set("uint16ExpKey", uint16(20), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("uint16ExpKey", uint16(20), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementUint16("uint16ExpKey", 5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -578,8 +578,8 @@ func TestCache_DecrementUint32(t *testing.T) {
 	})
 
 	t.Run("Decrement uint32 with expiration", func(t *testing.T) {
-		cache.Set("uint32ExpKey", uint32(20), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("uint32ExpKey", uint32(20), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementUint32("uint32ExpKey", 5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -624,8 +624,8 @@ func TestCache_DecrementUint64(t *testing.T) {
 	})
 
 	t.Run("Decrement uint64 with expiration", func(t *testing.T) {
-		cache.Set("uint64ExpKey", uint64(20), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("uint64ExpKey", uint64(20), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementUint64("uint64ExpKey", 5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -670,8 +670,8 @@ func TestCache_DecrementFloat32(t *testing.T) {
 	})
 
 	t.Run("Decrement float32 with expiration", func(t *testing.T) {
-		cache.Set("float32ExpKey", float32(20.5), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("float32ExpKey", float32(20.5), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementFloat32("float32ExpKey", 2.5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -717,8 +717,8 @@ func TestCache_DecrementFloat64(t *testing.T) {
 	})
 
 	t.Run("Decrement float64 with expiration", func(t *testing.T) {
-		cache.Set("float64ExpKey", float64(20.5), 1*time.Second)
-		time.Sleep(2 * time.Second) // Espera para que expire
+		cache.Set("float64ExpKey", float64(20.5), 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond) // Espera para que expire
 		_, err := cache.DecrementFloat64("float64ExpKey", 2.5)
 		if err == nil {
 			t.Fatalf("Expected error, got nil")

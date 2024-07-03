@@ -65,7 +65,10 @@ import (
 )
 
 func main() {
+	// Create a cache with a default expiration time of 5 minutes, and which
+	// purges expired items every 10 minutes
 	c := cache.New(5*time.Minute, 10*time.Minute)
+	// Set the value of the key "key1" to "value1", with the default expiration time
 	c.Set("key1", "value1", cache.DefaultExpiration)
 
 	val, found := c.Get("key1")
@@ -91,6 +94,8 @@ import (
 )
 
 func main() {
+	// Create a sharded cache with a default expiration time of 5 minutes, and which
+	// purges expired items every 10 minutes
 	sc := cache.NewSharded(5*time.Minute, 10*time.Minute, 10)
 	sc.Set("key1", "value1", cache.DefaultExpiration)
 

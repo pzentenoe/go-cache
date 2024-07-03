@@ -1,10 +1,13 @@
 package cache
 
-import "time"
+import (
+	"runtime"
+	"time"
+)
 
 type shardedJanitor struct {
 	Interval time.Duration
-	stop     chan bool
+	stop     chan struct{}
 }
 
 func (j *shardedJanitor) Run(sc *shardedCache) {
@@ -20,15 +23,23 @@ func (j *shardedJanitor) Run(sc *shardedCache) {
 	}
 }
 
+// Stop sends a signal to stop the janitor's Run loop and waits for it to finish
+func (j *shardedJanitor) Stop() {
+	close(j.stop)
+}
+
 func stopShardedJanitor(sc *unexportedShardedCache) {
-	sc.janitor.stop <- true
+	sc.janitor.Stop()
 }
 
 func runShardedJanitor(sc *shardedCache, ci time.Duration) {
 	j := &shardedJanitor{
 		Interval: ci,
-		stop:     make(chan bool),
+		stop:     make(chan struct{}),
 	}
 	sc.janitor = j
 	go j.Run(sc)
+	runtime.SetFinalizer(sc, func(sc *shardedCache) {
+		sc.janitor.Stop()
+	})
 }

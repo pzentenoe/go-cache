@@ -142,9 +142,22 @@ func TestShardedCache_Items(t *testing.T) {
 
 		items := sc.Items()
 
-		assert.Len(t, items, 2)
-		assert.Equal(t, "value1", items[0]["key1"].Object)
-		assert.Equal(t, "value2", items[1]["key2"].Object)
+		foundKey1 := false
+		foundKey2 := false
+
+		for _, shardItems := range items {
+			if item, ok := shardItems["key1"]; ok {
+				assert.Equal(t, "value1", item.Object)
+				foundKey1 = true
+			}
+			if item, ok := shardItems["key2"]; ok {
+				assert.Equal(t, "value2", item.Object)
+				foundKey2 = true
+			}
+		}
+
+		assert.True(t, foundKey1)
+		assert.True(t, foundKey2)
 	})
 }
 
