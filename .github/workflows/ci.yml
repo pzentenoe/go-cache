@@ -1,0 +1,48 @@
+name: Go CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.22.3
+
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.57.2
+
+      - name: Run golangci-lint
+        run: golangci-lint run ./... --timeout 5m
+
+      - name: Run tests
+        run: go test -v ./...
+
+      - name: Run tests and generate coverage report
+        run: |
+          go test -coverprofile=coverage.out -coverpkg=$(go list ./... | grep -v /test$ | grep -v main | grep -v '_repository.go$' | tr '\n' ',') ./...
+
+      - name: Generate coverage report
+        run: |
+          go tool cover -func=coverage.out | grep total | awk '{print substr($NF, 1, length($NF)-1)}' > coverage.txt
+          COVERAGE=$(cat coverage.txt)
+          echo "Coverage: $COVERAGE"
+          if (( $(echo "$COVERAGE < 50" | bc -l) )); then
+            echo "Coverage is below 50%. Stopping the workflow."
+            exit 1
+          fi
+
+
