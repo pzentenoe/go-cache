@@ -4,6 +4,7 @@
 
 The go-cache library is a high-performance, in-memory key-value store written in Go, designed to provide fast, temporary storage for your applications. It is suitable for caching purposes where data needs to be accessed quickly and frequently, but persistence is not required.
 
+[![codecov](https://codecov.io/github/pzentenoe/go-cache/graph/badge.svg?token=3W164MZ18S)](https://codecov.io/github/pzentenoe/go-cache)
 ![CI](https://github.com/pzentenoe/go-cache/actions/workflows/actions.yml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pzentenoe/go-cache)](https://goreportcard.com/report/github.com/pzentenoe/go-cache)
 ![License](https://img.shields.io/github/license/pzentenoe/go-cache.svg)
