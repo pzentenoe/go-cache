@@ -35,6 +35,20 @@ func newShardedCache(n int, de time.Duration) *shardedCache {
 	return sc
 }
 
+// NewSharded returns a new sharded cache with a given default expiration
+// duration and cleanup interval. The shards parameter determines the number
+// of internal shards to use for the cache. More shards reduce lock contention
+// in high-concurrency scenarios but use more memory. A good starting point is
+// between 8-32 shards depending on your use case.
+//
+// If the expiration duration is less than one (or NoExpiration), the items
+// in the cache never expire (by default), and must be deleted manually. If
+// the cleanup interval is less than one, expired items are not deleted from
+// the cache before calling DeleteExpired().
+func NewSharded(defaultExpiration, cleanupInterval time.Duration, shards int) ShardedCache {
+	return unexportedNewSharded(defaultExpiration, cleanupInterval, shards)
+}
+
 func unexportedNewSharded(defaultExpiration, cleanupInterval time.Duration, shards int) *unexportedShardedCache {
 	if defaultExpiration == 0 {
 		defaultExpiration = NoExpiration

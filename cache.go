@@ -70,7 +70,7 @@ func (c *Cache) Add(k string, x any, d time.Duration) error {
 	defer c.mu.Unlock()
 	_, found := c.get(k)
 	if found {
-		return fmt.Errorf("Item %s already exists", k)
+		return fmt.Errorf("item %s already exists", k)
 	}
 	c.set(k, x, d)
 	return nil
@@ -83,7 +83,7 @@ func (c *Cache) Replace(k string, x any, d time.Duration) error {
 	defer c.mu.Unlock()
 	_, found := c.get(k)
 	if !found {
-		return fmt.Errorf("Item %s doesn't exist", k)
+		return fmt.Errorf("item %s doesn't exist", k)
 	}
 	c.set(k, x, d)
 	return nil
@@ -191,4 +191,30 @@ func (c *Cache) Flush() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.items = make(map[string]Item)
+}
+
+// PauseJanitor temporarily pauses the automatic cleanup of expired items.
+// The janitor will stop deleting expired items until ResumeJanitor is called.
+// This method has no effect if the janitor is not running.
+func (c *Cache) PauseJanitor() {
+	if c.janitor != nil {
+		c.janitor.pause <- struct{}{}
+	}
+}
+
+// ResumeJanitor resumes the automatic cleanup of expired items after it was paused.
+// This method has no effect if the janitor is not running or not paused.
+func (c *Cache) ResumeJanitor() {
+	if c.janitor != nil {
+		c.janitor.resume <- struct{}{}
+	}
+}
+
+// SetJanitorInterval dynamically updates the janitor's cleanup interval.
+// The new interval will take effect immediately. This method has no effect
+// if the janitor is not running.
+func (c *Cache) SetJanitorInterval(d time.Duration) {
+	if c.janitor != nil {
+		c.janitor.updateInterval <- d
+	}
 }

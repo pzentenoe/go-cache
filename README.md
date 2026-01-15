@@ -1,21 +1,253 @@
 # go-cache
 
-## Overview
-
-The go-cache library is a high-performance, in-memory key-value store written in Go, designed to provide fast, temporary storage for your applications. It is suitable for caching purposes where data needs to be accessed quickly and frequently, but persistence is not required.
-
 [![codecov](https://codecov.io/github/pzentenoe/go-cache/graph/badge.svg?token=3W164MZ18S)](https://codecov.io/github/pzentenoe/go-cache)
 ![CI](https://github.com/pzentenoe/go-cache/actions/workflows/actions.yml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pzentenoe/go-cache)](https://goreportcard.com/report/github.com/pzentenoe/go-cache)
 ![License](https://img.shields.io/github/license/pzentenoe/go-cache.svg)
-![GitHub issues](https://img.shields.io/github/issues/pzentenoe/go-cache.svg)
 ![GitHub release](https://img.shields.io/github/v/release/pzentenoe/go-cache.svg)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/pzentenoe/go-cache)
-![GitHub last commit](https://img.shields.io/github/last-commit/pzentenoe/go-cache.svg)
-
-![Quality Gate](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=alert_status&token=sqb_26b769dfe1e6a8e16cb3d86a6a43e15b42c46d6f)
 ![Coverage](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=coverage&token=sqb_26b769dfe1e6a8e16cb3d86a6a43e15b42c46d6f)
-![Bugs](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=bugs&token=sqb_26b769dfe1e6a8e16cb3d86a6a43e15b42c46d6f)
+
+High-performance, thread-safe in-memory cache for Go with expiration support and advanced features.
+
+## Features
+
+- ⚡ **High Performance**: Optimized for concurrent access with optional sharding
+- 🔒 **Thread-Safe**: All operations protected with RWMutex
+- ⏰ **Flexible Expiration**: Per-item, default, or no expiration
+- 🧹 **Automatic Cleanup**: Background janitor with runtime control
+- 💾 **Serialization**: Persist cache to disk using Gob encoding
+- 🛡️ **Overflow Protection**: Built-in protection for numeric operations
+- 📊 **High Concurrency**: Sharded cache for reduced lock contention (2-4x faster)
+- 🎯 **Simple API**: Intuitive interface, easy to integrate
+
+## Quick Start
+
+### Installation
+
+```bash
+go get github.com/pzentenoe/go-cache
+```
+
+### Basic Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "time"
+    "github.com/pzentenoe/go-cache"
+)
+
+func main() {
+    // Create cache with 5-minute default expiration and 10-minute cleanup
+    c := cache.New(5*time.Minute, 10*time.Minute)
+
+    // Set a value
+    c.Set("mykey", "myvalue", cache.DefaultExpiration)
+
+    // Get a value
+    if val, found := c.Get("mykey"); found {
+        fmt.Println("Found:", val)
+    }
+}
+```
+
+### High-Concurrency Example
+
+```go
+// Use sharded cache for high-concurrency workloads
+sc := cache.NewSharded(5*time.Minute, 10*time.Minute, 32)
+
+// Same API as standard cache
+sc.Set("key", "value", cache.DefaultExpiration)
+val, found := sc.Get("key")
+```
+
+## Documentation
+
+### 📚 Guides
+
+- [Getting Started](docs/getting-started.md) - Installation, basic usage, core concepts
+- [API Reference](docs/api-reference.md) - Complete method documentation
+- [Sharded Cache](docs/sharded-cache.md) - High-concurrency usage guide
+- [Serialization](docs/serialization.md) - Persist cache to disk
+- [Janitor Control](docs/janitor-control.md) - Runtime cleanup management
+
+### 💡 Examples
+
+Runnable examples in [`examples/`](examples/):
+
+- [Basic Usage](examples/basic/) - Core operations and expiration
+- [Sharded Cache](examples/sharded/) - High-concurrency patterns
+- [Serialization](examples/serialization/) - Save/Load cache data
+- [Concurrent Operations](examples/concurrent/) - Thread-safe operations
+- [Overflow Protection](examples/overflow/) - Numeric operation safety
+- [Janitor Control](examples/janitor/) - Runtime cleanup management
+
+Run any example:
+```bash
+cd examples/basic && go run main.go
+```
+
+## Core Operations
+
+```go
+// Set operations
+c.Set("key", "value", cache.DefaultExpiration)
+c.SetDefault("key", "value")
+c.Add("key", "value", 5*time.Minute)      // Only if not exists
+c.Replace("key", "new", 5*time.Minute)    // Only if exists
+
+// Get operations
+val, found := c.Get("key")
+val, expTime, found := c.GetWithExpiration("key")
+
+// Delete operations
+c.Delete("key")
+c.DeleteExpired()  // Remove expired items
+c.Flush()          // Remove all items
+
+// Numeric operations (with overflow protection)
+c.Increment("counter", 1)
+c.Decrement("counter", 1)
+c.IncrementFloat("price", 5.50)
+
+// Type-safe operations
+result, err := c.IncrementUint64("views", 100)
+if err != nil {
+    // Overflow would occur
+}
+
+// Serialization
+c.SaveFile("cache.gob")
+c.LoadFile("cache.gob")
+
+// Janitor control (v2.0+)
+c.PauseJanitor()
+c.ResumeJanitor()
+c.SetJanitorInterval(5 * time.Minute)
+```
+
+## What's New in v2.0
+
+### Enhanced Features
+- **Overflow/Underflow Protection**: All increment/decrement operations include boundary checks
+- **Complete ShardedCache API**: Full feature parity with standard Cache
+- **Janitor Control**: Runtime control over automatic cleanup
+  - `PauseJanitor()` / `ResumeJanitor()` - Pause/resume cleanup
+  - `SetJanitorInterval()` - Dynamically change cleanup frequency
+- **Improved Thread Safety**: Optimized channel usage
+- **Go 1.25 Support**: Latest Go version compatibility
+
+### Performance Improvements
+- Test coverage: 80.8% → 92.9%
+- Sharded cache: 2-4x faster under high concurrency
+- Comprehensive concurrency and stress tests
+
+See [CHANGELOG.md](CHANGELOG.md) for complete details.
+
+## Performance
+
+### Standard Cache
+- Suitable for most applications
+- Single lock for all operations
+- ~500,000 ops/sec with 100 concurrent goroutines
+
+### Sharded Cache
+- Recommended for high-concurrency scenarios
+- Multiple independent caches with separate locks
+- ~2,000,000 ops/sec with 100 concurrent goroutines (4x improvement)
+- Configurable shard count (8, 16, 32, 64)
+
+**When to use sharded cache:**
+- ✅ High concurrent read/write operations (100+ goroutines)
+- ✅ Lock contention identified in profiling
+- ✅ Maximum throughput required
+
+See [Sharded Cache Guide](docs/sharded-cache.md) for benchmarks and best practices.
+
+## Thread Safety
+
+All operations are thread-safe and can be called from multiple goroutines:
+
+```go
+var wg sync.WaitGroup
+for i := 0; i < 100; i++ {
+    wg.Add(1)
+    go func(id int) {
+        defer wg.Done()
+        c.Set(fmt.Sprintf("key%d", id), id, cache.DefaultExpiration)
+        c.Get(fmt.Sprintf("key%d", id))
+    }(i)
+}
+wg.Wait()
+```
+
+## Testing
+
+```bash
+# Run all tests
+go test ./...
+
+# Run with coverage
+go test -cover ./...
+
+# Run with race detector
+go test -race ./...
+
+# Run specific example
+cd examples/basic && go run main.go
+```
+
+Current test coverage: **92.9%**
+
+## Supported Types
+
+Cache supports any Go type via `interface{}`:
+
+```go
+// Basic types
+c.Set("string", "hello", cache.DefaultExpiration)
+c.Set("int", 42, cache.DefaultExpiration)
+c.Set("float", 3.14, cache.DefaultExpiration)
+
+// Structs
+type User struct { Name string; Email string }
+c.Set("user", User{Name: "Alice", Email: "alice@example.com"}, cache.DefaultExpiration)
+
+// Slices, Maps
+c.Set("slice", []int{1, 2, 3}, cache.DefaultExpiration)
+c.Set("map", map[string]int{"a": 1, "b": 2}, cache.DefaultExpiration)
+```
+
+## Contributing
+
+We welcome contributions! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Add tests for new functionality
+4. Ensure tests pass: `go test -race ./...`
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+## License
+
+This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
+
+## Support
+
+- 📖 [Documentation](docs/)
+- 💬 [Issues](https://github.com/pzentenoe/go-cache/issues)
+- 🌟 [Star on GitHub](https://github.com/pzentenoe/go-cache)
 
 ### Buy Me a Coffee
 
@@ -23,267 +255,10 @@ The go-cache library is a high-performance, in-memory key-value store written in
 
 Thank you for your support! ❤️
 
-
-### Key Features
-- Simple and Easy to Use: The library offers a straightforward interface for common cache operations like adding, retrieving, and deleting items.
-- Flexible Expiration: Items can have custom expiration times, including no expiration. This is useful for controlling the lifespan of cached data.
-- Automatic Expiration: Automatically removes expired items based on a configurable cleanup interval, ensuring efficient memory usage.
-- Thread-Safe: The library uses synchronization primitives to ensure safe concurrent access to the cache.
-- Support for Various Types: It supports caching items of various types including int, float32, float64, and more.
-- Serialization: Provides methods to save and load cache data using Gob encoding.
-
-### Architecture
-The go-cache library is structured to offer both a standard cache and a sharded cache for higher concurrency needs.
-
-### Standard Cache
-- Cache: The main cache structure that stores items and handles operations like set, get, delete, etc.
-- Item: Represents an individual cached item with its value and expiration time.
-- Janitor: A background process that periodically cleans up expired items from the cache.
-
-### Sharded Cache
-For scenarios requiring high concurrency, the library provides a sharded cache implementation:
-- **shardedCache:** Splits the cache into multiple shards, each managed by its own Cache instance to reduce lock contention.
-- **shardedJanitor:** A janitor process specific to the sharded cache, responsible for cleaning up expired items in each shard.
-
-### Serialization
-The library supports saving and loading cache data to and from files using Gob encoding, allowing the cache state to be persisted and restored
-
-## Installation
-
-To use `go-cache` in your project, install it using the following Go command:
-
-```bash
-go get github.com/pzentenoe/go-cache
-```
-Import go-cache in your project:
-```go
-import "github.com/pzentenoe/go-cache"
-```
-## Usage Examples
-
-### Creating and Using a Standard Cache
-```go
-package main
-
-import (
-	"fmt"
-	"time"
-
-	"github.com/pzentenoe/go-cache"
-)
-
-func main() {
-	// Create a cache with a default expiration time of 5 minutes, and which
-	// purges expired items every 10 minutes
-	c := cache.New(5*time.Minute, 10*time.Minute)
-	// Set the value of the key "key1" to "value1", with the default expiration time
-	c.Set("key1", "value1", cache.DefaultExpiration)
-
-	val, found := c.Get("key1")
-	if found {
-		fmt.Println("Found value:", val)
-	} else {
-		fmt.Println("Item not found")
-	}
-
-	c.SaveFile("cache.data")
-	c.LoadFile("cache.data")
-}
-```
-### Creating and Using a Sharded Cache
-```go
-package main
-
-import (
-	"fmt"
-	"time"
-
-	"github.com/pzentenoe/go-cache"
-)
-
-func main() {
-	// Create a sharded cache with a default expiration time of 5 minutes, and which
-	// purges expired items every 10 minutes
-	sc := cache.NewSharded(5*time.Minute, 10*time.Minute, 10)
-	sc.Set("key1", "value1", cache.DefaultExpiration)
-
-	val, found := sc.Get("key1")
-	if found {
-		fmt.Println("Found value:", val)
-	} else {
-		fmt.Println("Item not found")
-	}
-
-	sc.SaveFile("sharded_cache.data")
-	sc.LoadFile("sharded_cache.data")
-}
-```
-### Incrementing and Decrementing Values
-```go
-package main
-
-import (
-	"fmt"
-	"time"
-
-	"github.com/pzentenoe/go-cache"
-)
-
-func main() {
-	c := cache.New(5*time.Minute, 10*time.Minute)
-	c.Set("counter", 1, cache.DefaultExpiration)
-
-	c.Increment("counter", 1)
-	val, _ := c.Get("counter")
-	fmt.Println("Counter after increment:", val)
-
-	c.Decrement("counter", 1)
-	val, _ = c.Get("counter")
-	fmt.Println("Counter after decrement:", val)
-}
-```
-
-
-## Methods
-
-#### Set
-```go
-Set(k string, x any, d time.Duration)
-```
-Adds an item to the cache, replacing any existing item. If the duration is DefaultExpiration, the cache’s default expiration time is used. If it is NoExpiration, the item never expires.
-
-#### SetDefault
-```go
-SetDefault(k string, x any)
-```
-Adds an item to the cache using the default expiration time.
-
-#### Add
-```go
-Add(k string, x any, d time.Duration) error
-```
-Adds an item to the cache only if an item doesn’t already exist for the given key, or if the existing item has expired. Returns an error otherwise.
-
-#### Replace
-```go
-Replace(k string, x any, d time.Duration) error
-```
-Sets a new value for the cache key only if it already exists, and the existing item hasn’t expired. Returns an error otherwise.
-
-#### Get
-```go
-Get(k string) (any, bool)
-```
-Gets an item from the cache. Returns the item or nil, and a boolean indicating whether the key was found.
-
-#### GetWithExpiration
-```go
-GetWithExpiration(k string) (any, time.Time, bool)
-```
-Returns an item and its expiration time from the cache. If the item never expires, a zero value for time.Time is returned.
-
-#### Delete
-```go
-Delete(k string)
-```
-Deletes an item from the cache.
-
-#### DeleteExpired
-```go
-DeleteExpired()
-```
-Deletes all expired items from the cache.
-
-### OnEvicted
-```go
-OnEvicted(f func(string, any))
-```
-Sets a function that is called with the key and value when an item is evicted from the cache. Set to nil to disable.
-
-#### Flush
-```go
-Flush()
-```
-Deletes all items from the cache.
-
-#### Increment
-```go
-Increment(k string, n int64) error
-```
-Increments an item of type int, int8, int16, int32, int64, uintptr, uint, uint8, uint32, or uint64, float32, or float64 by n. Returns an error if the item’s value is not an integer or if it was not found.
-
-##### IncrementFloat
-```go
-IncrementFloat(k string, n float64) error
-```
-Increments an item of type float32 or float64 by n. Returns an error if the item’s value is not floating point, if it was not found, or if it is not possible to increment it by n.
-
-#### Decrement
-```go
-Decrement(k string, n int64) error
-```
-Decrements an item of type int, int8, int16, int32, int64, uintptr, uint, uint8, uint32, or uint64, float32, or float64 by n. Returns an error if the item’s value is not an integer or if it was not found.
-
-#### DecrementFloat
-```go
-DecrementFloat(k string, n float64) error
-```
-Decrements an item of type float32 or float64 by n. Returns an error if the item’s value is not floating point, if it was not found, or if it is not possible to decrement it by n.
-
-#### Items
-```go
-Items() map[string]Item
-```
-Copies all unexpired items in the cache into a new map and returns it.
-
-#### ItemCount
-```go
-ItemCount() int
-```
-Returns the number of items in the cache. This may include items that have expired but have not yet been cleaned up.
-
-#### Save
-```go
-Save(w io.Writer) error
-```
-Writes the cache’s items (using Gob) to an io.Writer.
-
-#### SaveFile
-```go
-SaveFile(fname string) error
-```
-Saves the cache’s items to the given filename, creating the file if it doesn’t exist and overwriting it if it does.
-
-#### Load
-```go
-Load(r io.Reader) error
-```
-Adds (Gob-serialized) cache items from an io.Reader, excluding any items with keys that already exist (and haven’t expired) in the current cache.
-
-#### LoadFile
-```go
-LoadFile(fname string) error
-```
-Loads and adds cache items from the given filename, excluding any items with keys that already exist in the current cache.
-
-
-## Testing
-
-Execute the tests with:
-
-```bash
-go test ./...
-```
-
-## Contributing
-We welcome contributions! Please fork the project and submit pull requests to the `main` branch. Make sure to add tests
-for new functionalities and document any significant changes.
-
-## License
-This project is released under the MIT License. See the [LICENSE](LICENSE) file for more details.
-
-## Changelog
-For a detailed changelog, refer to [CHANGELOG.md](CHANGELOG.md).
-
 ## Author
-- **Pablo Zenteno** - _Full Stack Developer_ - [pzentenoe](https://github.com/pzentenoe)
+
+**Pablo Zenteno** - [pzentenoe](https://github.com/pzentenoe)
+
+---
+
+**Looking for more examples?** Check the [`examples/`](examples/) directory for runnable code samples.

@@ -12,7 +12,7 @@ func (c *Cache) Save(w io.Writer) (err error) {
 	enc := gob.NewEncoder(w)
 	defer func() {
 		if x := recover(); x != nil {
-			err = fmt.Errorf("Error registering item types with Gob library")
+			err = fmt.Errorf("error registering item types with Gob library")
 		}
 	}()
 	c.mu.RLock()

@@ -1,6 +1,9 @@
 package cache
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 // Decrement an item of type int, int8, int16, int32, int64, uintptr, uint,
 // uint8, uint32, or uint64, float32 or float64 by n. Returns an error if the
@@ -37,7 +40,7 @@ func (c *Cache) Decrement(k string, n int64) error {
 		case float64:
 			return val - float64(n), nil
 		default:
-			return nil, fmt.Errorf("The value for %s is not an integer", k)
+			return nil, fmt.Errorf("the value for %s is not an integer", k)
 		}
 	})
 }
@@ -47,7 +50,7 @@ func (c *Cache) decrement(k string, n any, decrementFunc func(any) (any, error))
 	defer c.mu.Unlock()
 	v, found := c.items[k]
 	if !found || v.Expired() {
-		return fmt.Errorf("Item %s not found", k)
+		return fmt.Errorf("item %s not found", k)
 	}
 	newValue, err := decrementFunc(v.Object)
 	if err != nil {
@@ -71,7 +74,7 @@ func (c *Cache) DecrementFloat(k string, n float64) error {
 		case float64:
 			return val - n, nil
 		default:
-			return nil, fmt.Errorf("The value for %s does not have type float32 or float64", k)
+			return nil, fmt.Errorf("the value for %s does not have type float32 or float64", k)
 		}
 	})
 }
@@ -229,37 +232,91 @@ func (c *Cache) decrementTyped(k string, n any, zero any) decrementResult {
 	defer c.mu.Unlock()
 	v, found := c.items[k]
 	if !found || v.Expired() {
-		return decrementResult{zero, fmt.Errorf("Item %s not found", k)}
+		return decrementResult{zero, fmt.Errorf("item %s not found", k)}
 	}
 	switch val := v.Object.(type) {
 	case int:
-		v.Object = val - n.(int)
+		nv := n.(int)
+		if (nv > 0 && val < math.MinInt+nv) || (nv < 0 && val > math.MaxInt+nv) {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = val - nv
 	case int8:
-		v.Object = val - n.(int8)
+		nv := n.(int8)
+		if (nv > 0 && val < math.MinInt8+nv) || (nv < 0 && val > math.MaxInt8+nv) {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = val - nv
 	case int16:
-		v.Object = val - n.(int16)
+		nv := n.(int16)
+		if (nv > 0 && val < math.MinInt16+nv) || (nv < 0 && val > math.MaxInt16+nv) {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = val - nv
 	case int32:
-		v.Object = val - n.(int32)
+		nv := n.(int32)
+		if (nv > 0 && val < math.MinInt32+nv) || (nv < 0 && val > math.MaxInt32+nv) {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = val - nv
 	case int64:
-		v.Object = val - n.(int64)
+		nv := n.(int64)
+		if (nv > 0 && val < math.MinInt64+nv) || (nv < 0 && val > math.MaxInt64+nv) {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = val - nv
 	case uint:
-		v.Object = val - n.(uint)
+		nv := n.(uint)
+		if val < nv {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = val - nv
 	case uintptr:
-		v.Object = val - n.(uintptr)
+		nv := n.(uintptr)
+		if val < nv {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = val - nv
 	case uint8:
-		v.Object = val - n.(uint8)
+		nv := n.(uint8)
+		if val < nv {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = val - nv
 	case uint16:
-		v.Object = val - n.(uint16)
+		nv := n.(uint16)
+		if val < nv {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = val - nv
 	case uint32:
-		v.Object = val - n.(uint32)
+		nv := n.(uint32)
+		if val < nv {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = val - nv
 	case uint64:
-		v.Object = val - n.(uint64)
+		nv := n.(uint64)
+		if val < nv {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = val - nv
 	case float32:
-		v.Object = val - n.(float32)
+		nv := n.(float32)
+		result := val - nv
+		if math.IsInf(float64(result), 0) {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = result
 	case float64:
-		v.Object = val - n.(float64)
+		nv := n.(float64)
+		result := val - nv
+		if math.IsInf(result, 0) {
+			return decrementResult{zero, fmt.Errorf("underflow would occur for %s", k)}
+		}
+		v.Object = result
 	default:
-		return decrementResult{zero, fmt.Errorf("The value for %s is not a supported type", k)}
+		return decrementResult{zero, fmt.Errorf("the value for %s is not a supported type", k)}
 	}
 	c.items[k] = v
 	return decrementResult{v.Object, nil}
