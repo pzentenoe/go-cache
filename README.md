@@ -5,7 +5,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/pzentenoe/go-cache)](https://goreportcard.com/report/github.com/pzentenoe/go-cache)
 ![License](https://img.shields.io/github/license/pzentenoe/go-cache.svg)
 ![GitHub release](https://img.shields.io/github/v/release/pzentenoe/go-cache.svg)
-![Coverage](https://sonarqube.vikingcode.cl/api/project_badges/measure?project=go-cache&metric=coverage&token=sqb_26b769dfe1e6a8e16cb3d86a6a43e15b42c46d6f)
 
 High-performance, thread-safe in-memory cache for Go with expiration support and advanced features.
 
