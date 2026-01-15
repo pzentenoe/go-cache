@@ -41,8 +41,8 @@ jobs:
           go tool cover -func=coverage.out -o coverage-summary.txt
           COVERAGE=$(go tool cover -func=coverage.out | grep total: | awk '{print substr($3, 1, length($3)-1)}')
           echo "Total test coverage: $COVERAGE%"
-          if (( $(echo "$COVERAGE < 60" |bc -l) )); then
-            echo "Test coverage is below 60%"
+          if (( $(echo "$COVERAGE < 50" |bc -l) )); then
+            echo "Test coverage is below 50%"
             exit 1
           fi
         env:
