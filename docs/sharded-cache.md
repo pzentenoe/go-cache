@@ -4,17 +4,20 @@ High-performance cache with reduced lock contention for concurrent workloads.
 
 ## Overview
 
-ShardedCache splits the cache into multiple independent shards, each with its own lock. This significantly improves performance in high-concurrency scenarios by reducing lock contention.
+ShardedCache splits the cache into multiple independent shards, each with its own lock. This significantly improves
+performance in high-concurrency scenarios by reducing lock contention.
 
 ## When to Use Sharded Cache
 
 Use ShardedCache when:
+
 - ✅ You have high concurrent read/write operations
 - ✅ Multiple goroutines access the cache simultaneously
 - ✅ Performance benchmarks show lock contention
 - ✅ You need maximum throughput
 
 Use standard Cache when:
+
 - ❌ Low concurrency (single goroutine or few goroutines)
 - ❌ Simplicity is more important than maximum performance
 - ❌ Memory overhead of multiple shards is a concern
@@ -31,16 +34,19 @@ sc := cache.NewSharded(5*time.Minute, 10*time.Minute, 16)
 ### Choosing the Number of Shards
 
 **General Guidelines:**
+
 - **8-16 shards**: Good starting point for most applications
 - **32 shards**: High concurrency (100+ goroutines)
 - **64 shards**: Extremely high concurrency (1000+ goroutines)
 - **Power of 2**: Use powers of 2 (8, 16, 32, 64) for optimal hashing
 
 **Trade-offs:**
+
 - More shards = Less contention, Higher memory overhead
 - Fewer shards = More contention, Lower memory overhead
 
 **Example:**
+
 ```go
 // Low concurrency
 sc := cache.NewSharded(5*time.Minute, 10*time.Minute, 8)
@@ -69,6 +75,7 @@ sc.SaveFile("cache.gob")
 ## Performance Comparison
 
 ### Standard Cache
+
 ```go
 c := cache.New(5*time.Minute, 10*time.Minute)
 
@@ -78,6 +85,7 @@ c := cache.New(5*time.Minute, 10*time.Minute)
 ```
 
 ### Sharded Cache (16 shards)
+
 ```go
 sc := cache.NewSharded(5*time.Minute, 10*time.Minute, 16)
 
@@ -95,13 +103,14 @@ ShardedCache uses DJB33 hash function to distribute keys:
 ```go
 // Pseudo-code
 func bucket(key string) *Cache {
-    hash := djb33(seed, key)
-    shardIndex := hash % numShards
-    return shards[shardIndex]
+hash := djb33(seed, key)
+shardIndex := hash % numShards
+return shards[shardIndex]
 }
 ```
 
 Keys are deterministically assigned to shards:
+
 - Same key always goes to same shard
 - Keys are evenly distributed
 - No rebalancing needed
@@ -109,11 +118,13 @@ Keys are deterministically assigned to shards:
 ### Lock Contention Reduction
 
 **Standard Cache:**
+
 ```
 All operations → Single Lock → Cache
 ```
 
 **Sharded Cache (4 shards example):**
+
 ```
 Operations → Shard 0 (Lock 0)
           ↘ Shard 1 (Lock 1)
@@ -127,36 +138,36 @@ Operations → Shard 0 (Lock 0)
 package main
 
 import (
-    "fmt"
-    "sync"
-    "time"
-    "github.com/pzentenoe/go-cache"
+	"fmt"
+	"sync"
+	"time"
+	"github.com/pzentenoe/go-cache"
 )
 
 func main() {
-    // Create sharded cache with 32 shards
-    sc := cache.NewSharded(5*time.Minute, 10*time.Minute, 32)
+	// Create sharded cache with 32 shards
+	sc := cache.NewSharded(5*time.Minute, 10*time.Minute, 32)
 
-    var wg sync.WaitGroup
-    numGoroutines := 100
-    operationsPerGoroutine := 1000
+	var wg sync.WaitGroup
+	numGoroutines := 100
+	operationsPerGoroutine := 1000
 
-    // Concurrent writes
-    for i := 0; i < numGoroutines; i++ {
-        wg.Add(1)
-        go func(id int) {
-            defer wg.Done()
-            for j := 0; j < operationsPerGoroutine; j++ {
-                key := fmt.Sprintf("key:%d:%d", id, j)
-                sc.Set(key, j, cache.DefaultExpiration)
-            }
-        }(i)
-    }
+	// Concurrent writes
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for j := 0; j < operationsPerGoroutine; j++ {
+				key := fmt.Sprintf("key:%d:%d", id, j)
+				sc.Set(key, j, cache.DefaultExpiration)
+			}
+		}(i)
+	}
 
-    wg.Wait()
+	wg.Wait()
 
-    fmt.Printf("Total items: %d\n", sc.ItemCount())
-    // Output: Total items: 100000
+	fmt.Printf("Total items: %d\n", sc.ItemCount())
+	// Output: Total items: 100000
 }
 ```
 
@@ -169,7 +180,7 @@ sc := cache.NewSharded(5*time.Minute, 10*time.Minute, 16)
 
 // Populate
 for i := 0; i < 1000; i++ {
-    sc.Set(fmt.Sprintf("key%d", i), i, cache.DefaultExpiration)
+sc.Set(fmt.Sprintf("key%d", i), i, cache.DefaultExpiration)
 }
 
 // Save
@@ -194,8 +205,8 @@ count := sc.ItemCount()
 ### OnEvicted Callback
 
 ```go
-sc.OnEvicted(func(key string, value any) {
-    log.Printf("Evicted from shard: %s = %v", key, value)
+sc.OnEvicted(func (key string, value any) {
+log.Printf("Evicted from shard: %s = %v", key, value)
 })
 // Callback is registered for ALL shards
 ```
@@ -204,10 +215,10 @@ sc.OnEvicted(func(key string, value any) {
 
 ```go
 if val, expTime, found := sc.GetWithExpiration("session:123"); found {
-    fmt.Println("Value:", val)
-    if !expTime.IsZero() {
-        fmt.Println("TTL:", time.Until(expTime))
-    }
+fmt.Println("Value:", val)
+if !expTime.IsZero() {
+fmt.Println("TTL:", time.Until(expTime))
+}
 }
 ```
 
@@ -226,57 +237,58 @@ Example benchmark comparing standard vs sharded cache:
 package main
 
 import (
-    "fmt"
-    "sync"
-    "time"
-    "github.com/pzentenoe/go-cache"
+	"fmt"
+	"sync"
+	"time"
+	"github.com/pzentenoe/go-cache"
 )
 
 func benchmarkCache(name string, operations int, concurrent int, useSharded bool) {
-    var c interface {
-        Set(string, any, time.Duration)
-        Get(string) (any, bool)
-    }
+	var c interface {
+		Set(string, any, time.Duration)
+		Get(string) (any, bool)
+	}
 
-    if useSharded {
-        c = cache.NewSharded(5*time.Minute, 0, 32)
-    } else {
-        c = cache.New(5*time.Minute, 0)
-    }
+	if useSharded {
+		c = cache.NewSharded(5*time.Minute, 0, 32)
+	} else {
+		c = cache.New(5*time.Minute, 0)
+	}
 
-    start := time.Now()
-    var wg sync.WaitGroup
+	start := time.Now()
+	var wg sync.WaitGroup
 
-    for i := 0; i < concurrent; i++ {
-        wg.Add(1)
-        go func(id int) {
-            defer wg.Done()
-            for j := 0; j < operations/concurrent; j++ {
-                key := fmt.Sprintf("key:%d:%d", id, j)
-                c.Set(key, j, cache.DefaultExpiration)
-                c.Get(key)
-            }
-        }(i)
-    }
+	for i := 0; i < concurrent; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for j := 0; j < operations/concurrent; j++ {
+				key := fmt.Sprintf("key:%d:%d", id, j)
+				c.Set(key, j, cache.DefaultExpiration)
+				c.Get(key)
+			}
+		}(i)
+	}
 
-    wg.Wait()
-    elapsed := time.Since(start)
+	wg.Wait()
+	elapsed := time.Since(start)
 
-    fmt.Printf("%s: %d ops in %v (%.0f ops/sec)\n",
-        name, operations, elapsed,
-        float64(operations)/elapsed.Seconds())
+	fmt.Printf("%s: %d ops in %v (%.0f ops/sec)\n",
+		name, operations, elapsed,
+		float64(operations)/elapsed.Seconds())
 }
 
 func main() {
-    ops := 1000000
-    concurrent := 100
+	ops := 1000000
+	concurrent := 100
 
-    benchmarkCache("Standard Cache", ops, concurrent, false)
-    benchmarkCache("Sharded Cache (32 shards)", ops, concurrent, true)
+	benchmarkCache("Standard Cache", ops, concurrent, false)
+	benchmarkCache("Sharded Cache (32 shards)", ops, concurrent, true)
 }
 ```
 
 Expected output:
+
 ```
 Standard Cache: 1000000 ops in 2.5s (400000 ops/sec)
 Sharded Cache (32 shards): 1000000 ops in 600ms (1666666 ops/sec)
@@ -302,6 +314,7 @@ ShardedCache
 ```
 
 Each shard:
+
 - Has its own independent Cache instance
 - Has its own lock (no contention with other shards)
 - Has its own janitor for cleanup
@@ -340,16 +353,16 @@ Each shard:
 ## Limitations
 
 1. **Memory Overhead:**
-   - Each shard has overhead for locks, maps, janitors
-   - More shards = more memory
+    - Each shard has overhead for locks, maps, janitors
+    - More shards = more memory
 
 2. **Serialization Compatibility:**
-   - Must use same shard count when loading
-   - Cannot change shard count after data is saved
+    - Must use same shard count when loading
+    - Cannot change shard count after data is saved
 
 3. **Items() Method:**
-   - Returns slice of maps (one per shard)
-   - Not a single unified map like standard Cache
+    - Returns slice of maps (one per shard)
+    - Not a single unified map like standard Cache
 
 ## Migration from Standard Cache
 

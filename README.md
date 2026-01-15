@@ -86,6 +86,7 @@ Runnable examples in [`examples/`](examples/):
 - [Janitor Control](examples/janitor/) - Runtime cleanup management
 
 Run any example:
+
 ```bash
 cd examples/basic && go run main.go
 ```
@@ -96,7 +97,7 @@ cd examples/basic && go run main.go
 // Set operations
 c.Set("key", "value", cache.DefaultExpiration)
 c.SetDefault("key", "value")
-c.Add("key", "value", 5*time.Minute)      // Only if not exists
+c.Add("key", "value", 5*time.Minute) // Only if not exists
 c.Replace("key", "new", 5*time.Minute)    // Only if exists
 
 // Get operations
@@ -105,8 +106,8 @@ val, expTime, found := c.GetWithExpiration("key")
 
 // Delete operations
 c.Delete("key")
-c.DeleteExpired()  // Remove expired items
-c.Flush()          // Remove all items
+c.DeleteExpired() // Remove expired items
+c.Flush() // Remove all items
 
 // Numeric operations (with overflow protection)
 c.Increment("counter", 1)
@@ -116,7 +117,7 @@ c.IncrementFloat("price", 5.50)
 // Type-safe operations
 result, err := c.IncrementUint64("views", 100)
 if err != nil {
-    // Overflow would occur
+// Overflow would occur
 }
 
 // Serialization
@@ -132,15 +133,17 @@ c.SetJanitorInterval(5 * time.Minute)
 ## What's New in v2.0
 
 ### Enhanced Features
+
 - **Overflow/Underflow Protection**: All increment/decrement operations include boundary checks
 - **Complete ShardedCache API**: Full feature parity with standard Cache
 - **Janitor Control**: Runtime control over automatic cleanup
-  - `PauseJanitor()` / `ResumeJanitor()` - Pause/resume cleanup
-  - `SetJanitorInterval()` - Dynamically change cleanup frequency
+    - `PauseJanitor()` / `ResumeJanitor()` - Pause/resume cleanup
+    - `SetJanitorInterval()` - Dynamically change cleanup frequency
 - **Improved Thread Safety**: Optimized channel usage
 - **Go 1.25 Support**: Latest Go version compatibility
 
 ### Performance Improvements
+
 - Test coverage: 80.8% → 92.9%
 - Sharded cache: 2-4x faster under high concurrency
 - Comprehensive concurrency and stress tests
@@ -150,17 +153,20 @@ See [CHANGELOG.md](CHANGELOG.md) for complete details.
 ## Performance
 
 ### Standard Cache
+
 - Suitable for most applications
 - Single lock for all operations
 - ~500,000 ops/sec with 100 concurrent goroutines
 
 ### Sharded Cache
+
 - Recommended for high-concurrency scenarios
 - Multiple independent caches with separate locks
 - ~2,000,000 ops/sec with 100 concurrent goroutines (4x improvement)
 - Configurable shard count (8, 16, 32, 64)
 
 **When to use sharded cache:**
+
 - ✅ High concurrent read/write operations (100+ goroutines)
 - ✅ Lock contention identified in profiling
 - ✅ Maximum throughput required
@@ -174,12 +180,12 @@ All operations are thread-safe and can be called from multiple goroutines:
 ```go
 var wg sync.WaitGroup
 for i := 0; i < 100; i++ {
-    wg.Add(1)
-    go func(id int) {
-        defer wg.Done()
-        c.Set(fmt.Sprintf("key%d", id), id, cache.DefaultExpiration)
-        c.Get(fmt.Sprintf("key%d", id))
-    }(i)
+wg.Add(1)
+go func (id int) {
+defer wg.Done()
+c.Set(fmt.Sprintf("key%d", id), id, cache.DefaultExpiration)
+c.Get(fmt.Sprintf("key%d", id))
+}(i)
 }
 wg.Wait()
 ```

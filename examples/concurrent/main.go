@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Concurrent Operations Example ===\n")
+	fmt.Println("=== Concurrent Operations Example ===")
 
 	// Standard cache concurrent operations
 	demonstrateStandardCacheConcurrency()

@@ -3,14 +3,12 @@ package main
 import (
 	"fmt"
 	"math"
-	"time"
 
 	"github.com/pzentenoe/go-cache"
 )
 
 func main() {
-	fmt.Println("=== Overflow/Underflow Protection Example ===\n")
-
+	fmt.Println("=== Overflow/Underflow Protection Example ===")
 	c := cache.New(cache.NoExpiration, 0)
 
 	// Unsigned integer overflow protection

@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Basic Cache Example ===\n")
+	fmt.Println("=== Basic Cache Example ===")
 
 	// Create a cache with a default expiration time of 5 minutes,
 	// and which purges expired items every 10 minutes
@@ -38,7 +38,7 @@ func main() {
 
 	// Try to get after expiration
 	if _, found := c.Get("temp"); !found {
-		fmt.Println("After expiration: 'temp' not found (expired)\n")
+		fmt.Println("After expiration: 'temp' not found (expired)")
 	}
 
 	// Set with no expiration

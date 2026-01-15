@@ -16,7 +16,7 @@ type User struct {
 }
 
 func main() {
-	fmt.Println("=== Serialization Example ===\n")
+	fmt.Println("=== Serialization Example ===")
 
 	// Create cache and populate with data
 	c := cache.New(5*time.Minute, 10*time.Minute)

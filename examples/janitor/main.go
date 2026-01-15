@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Janitor Control Example ===\n")
+	fmt.Println("=== Janitor Control Example ===")
 
 	// Demonstrate basic janitor functionality
 	demonstrateBasicJanitor()
@@ -42,7 +42,7 @@ func demonstrateBasicJanitor() {
 
 	// Janitor should have cleaned them up
 	fmt.Printf("After expiration, cache size: %d\n", c.ItemCount())
-	fmt.Println("✓ Janitor automatically cleaned expired items\n")
+	fmt.Println("✓ Janitor automatically cleaned expired items")
 }
 
 func demonstratePauseResume() {
@@ -75,7 +75,7 @@ func demonstratePauseResume() {
 
 	// Now items should be cleaned
 	fmt.Printf("After resume, cache size: %d\n", c.ItemCount())
-	fmt.Println("✓ Janitor resumed and cleaned expired items\n")
+	fmt.Println("✓ Janitor resumed and cleaned expired items")
 }
 
 func demonstrateIntervalChange() {
@@ -98,7 +98,7 @@ func demonstrateIntervalChange() {
 	time.Sleep(100 * time.Millisecond)
 
 	fmt.Printf("Cache size after fast cleanup: %d\n", c.ItemCount())
-	fmt.Println("✓ Interval change allowed faster cleanup\n")
+	fmt.Println("✓ Interval change allowed faster cleanup")
 }
 
 func demonstrateCombinedControl() {
@@ -129,7 +129,7 @@ func demonstrateCombinedControl() {
 
 	time.Sleep(50 * time.Millisecond)
 	fmt.Printf("  After resume with fast cleanup, size: %d\n", c.ItemCount())
-	fmt.Println("✓ Successfully controlled janitor through multiple phases\n")
+	fmt.Println("✓ Successfully controlled janitor through multiple phases")
 
 	// Demonstrate manual cleanup
 	fmt.Println("=== Manual Cleanup (DeleteExpired) ===")

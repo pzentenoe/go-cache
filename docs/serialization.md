@@ -4,7 +4,9 @@ Persist cache data to disk and restore it later using Go's Gob encoding.
 
 ## Overview
 
-go-cache supports serialization of both standard Cache and ShardedCache using Go's encoding/gob package. This allows you to:
+go-cache supports serialization of both standard Cache and ShardedCache using Go's encoding/gob package. This allows you
+to:
+
 - Persist cache state across application restarts
 - Transfer cache data between instances
 - Create cache backups
@@ -25,7 +27,7 @@ c.Set("counter", int64(42), cache.NoExpiration)
 // Save to file
 err := c.SaveFile("cache.gob")
 if err != nil {
-    log.Fatal(err)
+log.Fatal(err)
 }
 ```
 
@@ -37,12 +39,12 @@ c := cache.New(5*time.Minute, 10*time.Minute)
 // Load from file
 err := c.LoadFile("cache.gob")
 if err != nil {
-    log.Fatal(err)
+log.Fatal(err)
 }
 
 // Data is now available
 if val, found := c.Get("user:1"); found {
-    fmt.Println(val) // "Alice"
+fmt.Println(val) // "Alice"
 }
 ```
 
@@ -56,7 +58,7 @@ For more control, use `Save()` and `Load()` with io interfaces:
 // Save to custom writer
 file, err := os.Create("cache.gob")
 if err != nil {
-    return err
+return err
 }
 defer file.Close()
 
@@ -75,7 +77,7 @@ err := c.Save(conn)
 // Load from custom reader
 file, err := os.Open("cache.gob")
 if err != nil {
-    return err
+return err
 }
 defer file.Close()
 
@@ -95,6 +97,7 @@ err := c.Load(conn)
 Gob encoding supports most Go types:
 
 ### Basic Types ✅
+
 ```go
 c.Set("string", "hello", cache.DefaultExpiration)
 c.Set("int", 42, cache.DefaultExpiration)
@@ -103,6 +106,7 @@ c.Set("bool", true, cache.DefaultExpiration)
 ```
 
 ### Composite Types ✅
+
 ```go
 // Slices
 c.Set("slice", []int{1, 2, 3}, cache.DefaultExpiration)
@@ -112,8 +116,8 @@ c.Set("map", map[string]int{"a": 1, "b": 2}, cache.DefaultExpiration)
 
 // Structs
 type User struct {
-    Name  string
-    Email string
+Name  string
+Email string
 }
 c.Set("user", User{Name: "Alice", Email: "alice@example.com"}, cache.DefaultExpiration)
 
@@ -128,17 +132,18 @@ For custom types, Gob automatically registers them during Save():
 
 ```go
 type CustomStruct struct {
-    Field1 string
-    Field2 int
+Field1 string
+Field2 int
 }
 
 c.Set("custom", CustomStruct{"value", 123}, cache.DefaultExpiration)
-c.SaveFile("cache.gob")  // Automatically registers CustomStruct
+c.SaveFile("cache.gob") // Automatically registers CustomStruct
 ```
 
 ### Unsupported Types ❌
 
 Gob cannot encode:
+
 - Channels
 - Functions
 - Unsafe pointers
@@ -153,7 +158,7 @@ sc := cache.NewSharded(5*time.Minute, 10*time.Minute, 16)
 
 // Populate
 for i := 0; i < 1000; i++ {
-    sc.Set(fmt.Sprintf("key%d", i), i, cache.DefaultExpiration)
+sc.Set(fmt.Sprintf("key%d", i), i, cache.DefaultExpiration)
 }
 
 // Save
@@ -215,64 +220,64 @@ c.LoadFile("cache.gob")
 package main
 
 import (
-    "fmt"
-    "time"
-    "github.com/pzentenoe/go-cache"
+	"fmt"
+	"time"
+	"github.com/pzentenoe/go-cache"
 )
 
 type User struct {
-    ID        int
-    Name      string
-    Email     string
-    CreatedAt time.Time
+	ID        int
+	Name      string
+	Email     string
+	CreatedAt time.Time
 }
 
 func main() {
-    // Create and populate cache
-    c := cache.New(5*time.Minute, 10*time.Minute)
+	// Create and populate cache
+	c := cache.New(5*time.Minute, 10*time.Minute)
 
-    users := []User{
-        {ID: 1, Name: "Alice", Email: "alice@example.com", CreatedAt: time.Now()},
-        {ID: 2, Name: "Bob", Email: "bob@example.com", CreatedAt: time.Now()},
-    }
+	users := []User{
+		{ID: 1, Name: "Alice", Email: "alice@example.com", CreatedAt: time.Now()},
+		{ID: 2, Name: "Bob", Email: "bob@example.com", CreatedAt: time.Now()},
+	}
 
-    for _, user := range users {
-        c.Set(fmt.Sprintf("user:%d", user.ID), user, cache.DefaultExpiration)
-    }
+	for _, user := range users {
+		c.Set(fmt.Sprintf("user:%d", user.ID), user, cache.DefaultExpiration)
+	}
 
-    c.Set("config", map[string]interface{}{
-        "max_connections": 100,
-        "timeout":         30 * time.Second,
-    }, cache.NoExpiration)
+	c.Set("config", map[string]interface{}{
+		"max_connections": 100,
+		"timeout":         30 * time.Second,
+	}, cache.NoExpiration)
 
-    // Save to file
-    fmt.Println("Saving cache...")
-    err := c.SaveFile("app_cache.gob")
-    if err != nil {
-        panic(err)
-    }
+	// Save to file
+	fmt.Println("Saving cache...")
+	err := c.SaveFile("app_cache.gob")
+	if err != nil {
+		panic(err)
+	}
 
-    // Simulate app restart - create new cache
-    fmt.Println("\nSimulating app restart...")
-    newCache := cache.New(5*time.Minute, 10*time.Minute)
+	// Simulate app restart - create new cache
+	fmt.Println("\nSimulating app restart...")
+	newCache := cache.New(5*time.Minute, 10*time.Minute)
 
-    // Load from file
-    fmt.Println("Loading cache from disk...")
-    err = newCache.LoadFile("app_cache.gob")
-    if err != nil {
-        panic(err)
-    }
+	// Load from file
+	fmt.Println("Loading cache from disk...")
+	err = newCache.LoadFile("app_cache.gob")
+	if err != nil {
+		panic(err)
+	}
 
-    // Verify data
-    if val, found := newCache.Get("user:1"); found {
-        user := val.(User)
-        fmt.Printf("Loaded user: %+v\n", user)
-    }
+	// Verify data
+	if val, found := newCache.Get("user:1"); found {
+		user := val.(User)
+		fmt.Printf("Loaded user: %+v\n", user)
+	}
 
-    if val, found := newCache.Get("config"); found {
-        config := val.(map[string]interface{})
-        fmt.Printf("Loaded config: %v\n", config)
-    }
+	if val, found := newCache.Get("config"); found {
+		config := val.(map[string]interface{})
+		fmt.Printf("Loaded config: %v\n", config)
+	}
 }
 ```
 
@@ -283,11 +288,11 @@ func main() {
 ```go
 err := c.SaveFile("cache.gob")
 if err != nil {
-    // Possible errors:
-    // - File permission denied
-    // - Disk full
-    // - Type registration error
-    log.Printf("Failed to save cache: %v", err)
+// Possible errors:
+// - File permission denied
+// - Disk full
+// - Type registration error
+log.Printf("Failed to save cache: %v", err)
 }
 ```
 
@@ -296,12 +301,12 @@ if err != nil {
 ```go
 err := c.LoadFile("cache.gob")
 if err != nil {
-    // Possible errors:
-    // - File not found
-    // - Corrupt file
-    // - Incompatible Gob version
-    // - Shard count mismatch (ShardedCache)
-    log.Printf("Failed to load cache: %v", err)
+// Possible errors:
+// - File not found
+// - Corrupt file
+// - Incompatible Gob version
+// - Shard count mismatch (ShardedCache)
+log.Printf("Failed to load cache: %v", err)
 }
 ```
 
@@ -314,10 +319,10 @@ c := cache.New(5*time.Minute, 10*time.Minute)
 
 err := c.LoadFile("cache.gob")
 if err != nil {
-    log.Printf("Warning: Could not load cache: %v", err)
-    // Continue with empty cache
+log.Printf("Warning: Could not load cache: %v", err)
+// Continue with empty cache
 } else {
-    log.Println("Cache loaded successfully")
+log.Println("Cache loaded successfully")
 }
 ```
 
@@ -326,13 +331,13 @@ if err != nil {
 ```go
 // Save cache every 5 minutes
 ticker := time.NewTicker(5 * time.Minute)
-go func() {
-    for range ticker.C {
-        err := c.SaveFile("cache.gob")
-        if err != nil {
-            log.Printf("Failed to save cache: %v", err)
-        }
-    }
+go func () {
+for range ticker.C {
+err := c.SaveFile("cache.gob")
+if err != nil {
+log.Printf("Failed to save cache: %v", err)
+}
+}
 }()
 ```
 
@@ -340,20 +345,20 @@ go func() {
 
 ```go
 func main() {
-    c := cache.New(5*time.Minute, 10*time.Minute)
+c := cache.New(5*time.Minute, 10*time.Minute)
 
-    // Handle graceful shutdown
-    sigChan := make(chan os.Signal, 1)
-    signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+// Handle graceful shutdown
+sigChan := make(chan os.Signal, 1)
+signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
-    go func() {
-        <-sigChan
-        fmt.Println("\nSaving cache before shutdown...")
-        c.SaveFile("cache.gob")
-        os.Exit(0)
-    }()
+go func () {
+<-sigChan
+fmt.Println("\nSaving cache before shutdown...")
+c.SaveFile("cache.gob")
+os.Exit(0)
+}()
 
-    // Your application logic...
+// Your application logic...
 }
 ```
 
@@ -366,14 +371,14 @@ finalFile := "cache.gob"
 
 err := c.SaveFile(tmpFile)
 if err != nil {
-    return err
+return err
 }
 
 // Atomic rename
 err = os.Rename(tmpFile, finalFile)
 if err != nil {
-    os.Remove(tmpFile)
-    return err
+os.Remove(tmpFile)
+return err
 }
 ```
 
@@ -381,8 +386,8 @@ if err != nil {
 
 ```go
 import (
-    "compress/gzip"
-    "os"
+"compress/gzip"
+"os"
 )
 
 // Save with compression
@@ -409,11 +414,13 @@ c.Load(gzReader)
 ### Save Performance
 
 Save time depends on:
+
 - Number of items
 - Complexity of stored types
 - Disk I/O speed
 
 Approximate times (SSD):
+
 - 1,000 items: ~5ms
 - 10,000 items: ~50ms
 - 100,000 items: ~500ms
@@ -425,6 +432,7 @@ Load time is similar to save time but may be slightly faster.
 ### Memory Usage
 
 During serialization:
+
 - Save: No additional memory (streams to disk)
 - Load: Temporary memory for deserialization
 
@@ -437,7 +445,7 @@ During serialization:
 type MyType struct { ... }
 
 func init() {
-    gob.Register(MyType{})
+gob.Register(MyType{})
 }
 ```
 
@@ -460,13 +468,13 @@ sc2.LoadFile("cache.gob")
 // Validate before loading
 fileInfo, err := os.Stat("cache.gob")
 if err != nil {
-    log.Println("Cache file not found, starting fresh")
-    return
+log.Println("Cache file not found, starting fresh")
+return
 }
 
 if fileInfo.Size() == 0 {
-    log.Println("Cache file is empty, starting fresh")
-    return
+log.Println("Cache file is empty, starting fresh")
+return
 }
 
 c.LoadFile("cache.gob")

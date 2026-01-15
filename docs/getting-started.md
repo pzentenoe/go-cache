@@ -16,23 +16,23 @@ go get github.com/pzentenoe/go-cache
 package main
 
 import (
-    "fmt"
-    "time"
-    "github.com/pzentenoe/go-cache"
+	"fmt"
+	"time"
+	"github.com/pzentenoe/go-cache"
 )
 
 func main() {
-    // Create a cache with 5-minute default expiration
-    // and 10-minute cleanup interval
-    c := cache.New(5*time.Minute, 10*time.Minute)
+	// Create a cache with 5-minute default expiration
+	// and 10-minute cleanup interval
+	c := cache.New(5*time.Minute, 10*time.Minute)
 
-    // Set a value
-    c.Set("mykey", "myvalue", cache.DefaultExpiration)
+	// Set a value
+	c.Set("mykey", "myvalue", cache.DefaultExpiration)
 
-    // Get a value
-    if val, found := c.Get("mykey"); found {
-        fmt.Println("Found:", val)
-    }
+	// Get a value
+	if val, found := c.Get("mykey"); found {
+		fmt.Println("Found:", val)
+	}
 }
 ```
 
@@ -43,17 +43,20 @@ func main() {
 go-cache supports three types of expiration:
 
 1. **Default Expiration**: Uses the cache's default expiration time
+
 ```go
 c.Set("key", "value", cache.DefaultExpiration)
 c.SetDefault("key", "value") // Same as above
 ```
 
 2. **Custom Expiration**: Specify a custom duration
+
 ```go
 c.Set("key", "value", 30*time.Second)
 ```
 
 3. **No Expiration**: Item never expires
+
 ```go
 c.Set("key", "value", cache.NoExpiration)
 ```
@@ -93,7 +96,7 @@ c.Set("config", appConfig, cache.NoExpiration)
 // Add (only if not exists)
 err := c.Add("user:1", "Bob", cache.DefaultExpiration)
 if err != nil {
-    // Key already exists
+// Key already exists
 }
 
 // Replace (only if exists)
@@ -105,16 +108,16 @@ err = c.Replace("user:1", "Charlie", cache.DefaultExpiration)
 ```go
 // Simple get
 if val, found := c.Get("user:1"); found {
-    user := val.(string)
-    fmt.Println(user)
+user := val.(string)
+fmt.Println(user)
 }
 
 // Get with expiration info
 if val, expTime, found := c.GetWithExpiration("user:1"); found {
-    user := val.(string)
-    if !expTime.IsZero() {
-        fmt.Println("Expires at:", expTime)
-    }
+user := val.(string)
+if !expTime.IsZero() {
+fmt.Println("Expires at:", expTime)
+}
 }
 ```
 
@@ -143,13 +146,13 @@ c.Decrement("counter", 1)
 c.Set("views", uint64(100), cache.NoExpiration)
 result, err := c.IncrementUint64("views", 50)
 if err != nil {
-    // Overflow would occur
+// Overflow would occur
 }
 
 // Float operations
 c.Set("price", 19.99, cache.NoExpiration)
-c.IncrementFloat("price", 5.00)  // 24.99
-c.DecrementFloat("price", 2.50)  // 22.49
+c.IncrementFloat("price", 5.00) // 24.99
+c.DecrementFloat("price", 2.50) // 22.49
 ```
 
 ## Type Safety
@@ -158,8 +161,8 @@ go-cache stores values as `any` (interface{}). You need to type assert when retr
 
 ```go
 type User struct {
-    Name  string
-    Email string
+Name  string
+Email string
 }
 
 user := User{Name: "Alice", Email: "alice@example.com"}
@@ -167,8 +170,8 @@ c.Set("user:1", user, cache.DefaultExpiration)
 
 // Type assertion
 if val, found := c.Get("user:1"); found {
-    user := val.(User)
-    fmt.Println(user.Name)
+user := val.(User)
+fmt.Println(user.Name)
 }
 ```
 
@@ -177,8 +180,8 @@ if val, found := c.Get("user:1"); found {
 Execute custom logic when items are evicted:
 
 ```go
-c.OnEvicted(func(key string, value any) {
-    fmt.Printf("Evicted: %s = %v\n", key, value)
+c.OnEvicted(func (key string, value any) {
+fmt.Printf("Evicted: %s = %v\n", key, value)
 })
 
 // Callback is triggered on:
@@ -197,11 +200,11 @@ var wg sync.WaitGroup
 
 // Safe concurrent writes
 for i := 0; i < 100; i++ {
-    wg.Add(1)
-    go func(id int) {
-        defer wg.Done()
-        c.Set(fmt.Sprintf("key%d", id), id, cache.DefaultExpiration)
-    }(i)
+wg.Add(1)
+go func (id int) {
+defer wg.Done()
+c.Set(fmt.Sprintf("key%d", id), id, cache.DefaultExpiration)
+}(i)
 }
 
 wg.Wait()

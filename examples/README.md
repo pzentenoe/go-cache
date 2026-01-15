@@ -29,9 +29,11 @@ cd janitor && go run main.go
 ## Examples Overview
 
 ### [basic/](basic/)
+
 **Core operations and expiration**
 
 Demonstrates:
+
 - Creating a cache
 - Set/Get/Delete operations
 - Expiration (default, custom, none)
@@ -43,9 +45,11 @@ Demonstrates:
 **Best for:** Learning the fundamentals
 
 ### [sharded/](sharded/)
+
 **High-concurrency patterns**
 
 Demonstrates:
+
 - Creating a sharded cache
 - Performance comparison with standard cache
 - Concurrent read/write operations
@@ -56,9 +60,11 @@ Demonstrates:
 **Best for:** High-performance, concurrent applications
 
 ### [serialization/](serialization/)
+
 **Save/Load cache data**
 
 Demonstrates:
+
 - Saving cache to file
 - Loading cache from file
 - Serializing custom types
@@ -68,9 +74,11 @@ Demonstrates:
 **Best for:** Applications requiring cache persistence
 
 ### [concurrent/](concurrent/)
+
 **Thread-safe operations**
 
 Demonstrates:
+
 - Concurrent reads and writes
 - Standard vs sharded cache performance
 - Thread-safe increment operations
@@ -80,9 +88,11 @@ Demonstrates:
 **Best for:** Understanding concurrency behavior
 
 ### [overflow/](overflow/)
+
 **Numeric operation safety**
 
 Demonstrates:
+
 - Unsigned integer overflow protection
 - Signed integer overflow/underflow protection
 - Float infinity protection
@@ -92,9 +102,11 @@ Demonstrates:
 **Best for:** Applications with numeric counters
 
 ### [janitor/](janitor/)
+
 **Runtime cleanup management**
 
 Demonstrates:
+
 - Automatic janitor cleanup
 - Pausing and resuming janitor
 - Dynamically changing cleanup interval
@@ -113,6 +125,7 @@ If you're new to go-cache, start with these examples in order:
 4. **sharded/** - Learn when to use sharding
 
 For specific use cases:
+
 - Need high performance? → **sharded/**
 - Need numeric counters? → **overflow/**
 - Need cleanup control? → **janitor/**
@@ -127,6 +140,7 @@ example-name/
 ```
 
 All examples:
+
 - Are self-contained
 - Include comments explaining each step
 - Can be run independently
@@ -152,7 +166,7 @@ c.Set("key", "value", cache.DefaultExpiration)
 
 // Get
 if val, found := c.Get("key"); found {
-    fmt.Println(val)
+fmt.Println(val)
 }
 
 // Delete
@@ -166,18 +180,18 @@ Since cache stores `interface{}`, you need type assertions:
 ```go
 // String
 if val, found := c.Get("name"); found {
-    name := val.(string)
+name := val.(string)
 }
 
 // Struct
 type User struct { Name string }
 if val, found := c.Get("user"); found {
-    user := val.(User)
+user := val.(User)
 }
 
 // Numbers
 if val, found := c.Get("count"); found {
-    count := val.(int64)
+count := val.(int64)
 }
 ```
 
@@ -193,7 +207,7 @@ c := cache.New(1*time.Minute, 30*time.Second)
 sc := cache.NewSharded(5*time.Minute, 10*time.Minute, 32)
 
 // Experiment with concurrency
-numGoroutines := 1000  // Increase concurrency
+numGoroutines := 1000 // Increase concurrency
 ```
 
 ## Need Help?

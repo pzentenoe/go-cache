@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Sharded Cache Example ===\n")
+	fmt.Println("=== Sharded Cache Example ===")
 
 	// Create a sharded cache with 16 shards for high concurrency
 	// Default expiration: 5 minutes, cleanup interval: 10 minutes

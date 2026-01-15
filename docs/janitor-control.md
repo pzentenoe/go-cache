@@ -4,7 +4,8 @@ Runtime control over automatic cleanup of expired items.
 
 ## Overview
 
-The janitor is a background goroutine that automatically deletes expired items at regular intervals. go-cache v2.0+ provides methods to control janitor behavior at runtime.
+The janitor is a background goroutine that automatically deletes expired items at regular intervals. go-cache v2.0+
+provides methods to control janitor behavior at runtime.
 
 ## Default Behavior
 
@@ -29,7 +30,8 @@ c.DeleteExpired()
 
 ### PauseJanitor()
 
-Temporarily pauses automatic cleanup. Expired items remain in cache until janitor is resumed or `DeleteExpired()` is called.
+Temporarily pauses automatic cleanup. Expired items remain in cache until janitor is resumed or `DeleteExpired()` is
+called.
 
 ```go
 c.PauseJanitor()
@@ -37,6 +39,7 @@ c.PauseJanitor()
 ```
 
 **Use cases:**
+
 - Bulk operations where cleanup might interfere
 - Temporary performance boost during high load
 - Maintenance windows
@@ -63,6 +66,7 @@ c.SetJanitorInterval(30 * time.Minute)
 ```
 
 **Use cases:**
+
 - Adjust cleanup frequency based on load
 - Speed up cleanup during off-peak hours
 - Slow down cleanup during peak hours
@@ -73,41 +77,41 @@ c.SetJanitorInterval(30 * time.Minute)
 package main
 
 import (
-    "fmt"
-    "time"
-    "github.com/pzentenoe/go-cache"
+	"fmt"
+	"time"
+	"github.com/pzentenoe/go-cache"
 )
 
 func main() {
-    // Start with 5-minute cleanup interval
-    c := cache.New(1*time.Minute, 5*time.Minute)
+	// Start with 5-minute cleanup interval
+	c := cache.New(1*time.Minute, 5*time.Minute)
 
-    // Phase 1: Normal operation
-    fmt.Println("Phase 1: Normal operation")
-    c.Set("temp1", "value", 1*time.Minute)
-    time.Sleep(2 * time.Minute)
-    fmt.Printf("Items: %d (should be 0, cleaned by janitor)\n", c.ItemCount())
+	// Phase 1: Normal operation
+	fmt.Println("Phase 1: Normal operation")
+	c.Set("temp1", "value", 1*time.Minute)
+	time.Sleep(2 * time.Minute)
+	fmt.Printf("Items: %d (should be 0, cleaned by janitor)\n", c.ItemCount())
 
-    // Phase 2: Pause for bulk operations
-    fmt.Println("\nPhase 2: Pausing janitor for bulk operations")
-    c.PauseJanitor()
+	// Phase 2: Pause for bulk operations
+	fmt.Println("\nPhase 2: Pausing janitor for bulk operations")
+	c.PauseJanitor()
 
-    for i := 0; i < 100; i++ {
-        c.Set(fmt.Sprintf("bulk:%d", i), i, 1*time.Minute)
-    }
-    fmt.Printf("Added 100 items\n")
+	for i := 0; i < 100; i++ {
+		c.Set(fmt.Sprintf("bulk:%d", i), i, 1*time.Minute)
+	}
+	fmt.Printf("Added 100 items\n")
 
-    time.Sleep(2 * time.Minute)
-    fmt.Printf("After expiration (paused): %d items\n", c.ItemCount())
-    // Items are expired but not deleted
+	time.Sleep(2 * time.Minute)
+	fmt.Printf("After expiration (paused): %d items\n", c.ItemCount())
+	// Items are expired but not deleted
 
-    // Phase 3: Speed up cleanup and resume
-    fmt.Println("\nPhase 3: Speeding up cleanup")
-    c.SetJanitorInterval(10 * time.Second)
-    c.ResumeJanitor()
+	// Phase 3: Speed up cleanup and resume
+	fmt.Println("\nPhase 3: Speeding up cleanup")
+	c.SetJanitorInterval(10 * time.Second)
+	c.ResumeJanitor()
 
-    time.Sleep(15 * time.Second)
-    fmt.Printf("After fast cleanup: %d items\n", c.ItemCount())
+	time.Sleep(15 * time.Second)
+	fmt.Printf("After fast cleanup: %d items\n", c.ItemCount())
 }
 ```
 
@@ -118,7 +122,7 @@ c := cache.New(100*time.Millisecond, 50*time.Millisecond)
 
 // Add items
 for i := 0; i < 10; i++ {
-    c.Set(fmt.Sprintf("key%d", i), i, 100*time.Millisecond)
+c.Set(fmt.Sprintf("key%d", i), i, 100*time.Millisecond)
 }
 fmt.Printf("Added 10 items\n")
 
@@ -147,17 +151,17 @@ fmt.Printf("After resume: %d items\n", c.ItemCount())
 
 ```go
 func adjustCleanupInterval(c *cache.Cache, load int) {
-    switch {
-    case load > 1000:
-        // High load - slow down cleanup
-        c.SetJanitorInterval(30 * time.Minute)
-    case load > 100:
-        // Medium load - normal cleanup
-        c.SetJanitorInterval(10 * time.Minute)
-    default:
-        // Low load - aggressive cleanup
-        c.SetJanitorInterval(1 * time.Minute)
-    }
+switch {
+case load > 1000:
+// High load - slow down cleanup
+c.SetJanitorInterval(30 * time.Minute)
+case load > 100:
+// Medium load - normal cleanup
+c.SetJanitorInterval(10 * time.Minute)
+default:
+// Low load - aggressive cleanup
+c.SetJanitorInterval(1 * time.Minute)
+}
 }
 ```
 
@@ -165,19 +169,19 @@ func adjustCleanupInterval(c *cache.Cache, load int) {
 
 ```go
 // Aggressive cleanup during off-peak hours
-go func() {
-    ticker := time.NewTicker(1 * time.Hour)
-    for range ticker.C {
-        hour := time.Now().Hour()
+go func () {
+ticker := time.NewTicker(1 * time.Hour)
+for range ticker.C {
+hour := time.Now().Hour()
 
-        if hour >= 2 && hour <= 6 {
-            // 2 AM - 6 AM: Aggressive cleanup
-            c.SetJanitorInterval(1 * time.Minute)
-        } else {
-            // Business hours: Conservative cleanup
-            c.SetJanitorInterval(15 * time.Minute)
-        }
-    }
+if hour >= 2 && hour <= 6 {
+// 2 AM - 6 AM: Aggressive cleanup
+c.SetJanitorInterval(1 * time.Minute)
+} else {
+// Business hours: Conservative cleanup
+c.SetJanitorInterval(15 * time.Minute)
+}
+}
 }()
 ```
 
@@ -212,18 +216,18 @@ If you don't need automatic cleanup, disable the janitor and use manual cleanup:
 c := cache.New(5*time.Minute, 0)
 
 // Manual cleanup when needed
-go func() {
-    ticker := time.NewTicker(10 * time.Minute)
-    for range ticker.C {
-        c.DeleteExpired()
-    }
+go func () {
+ticker := time.NewTicker(10 * time.Minute)
+for range ticker.C {
+c.DeleteExpired()
+}
 }()
 
 // Or cleanup on-demand
 func cleanupIfNeeded(c *cache.Cache, maxItems int) {
-    if c.ItemCount() > maxItems {
-        c.DeleteExpired()
-    }
+if c.ItemCount() > maxItems {
+c.DeleteExpired()
+}
 }
 ```
 
@@ -238,7 +242,7 @@ fmt.Println("Starting with 100ms interval")
 // Pause for bulk operation
 c.PauseJanitor()
 for i := 0; i < 1000; i++ {
-    c.Set(fmt.Sprintf("key%d", i), i, 100*time.Millisecond)
+c.Set(fmt.Sprintf("key%d", i), i, 100*time.Millisecond)
 }
 
 // Change interval while paused
@@ -271,6 +275,7 @@ c.SetJanitorInterval(1 * time.Minute)
 ### Pause Overhead
 
 Pausing has minimal overhead:
+
 - Non-blocking operation
 - Single channel send
 - Immediate effect
@@ -278,6 +283,7 @@ Pausing has minimal overhead:
 ### Interval Change Overhead
 
 Changing interval requires:
+
 - Stopping old ticker
 - Creating new ticker
 - Small memory allocation
@@ -285,6 +291,7 @@ Changing interval requires:
 ### Best Practices
 
 1. **Don't pause unnecessarily:**
+
 ```go
 // Bad - unnecessary pause for single operation
 c.PauseJanitor()
@@ -294,12 +301,13 @@ c.ResumeJanitor()
 // Good - pause only for bulk operations
 c.PauseJanitor()
 for i := 0; i < 10000; i++ {
-    c.Set(fmt.Sprintf("key%d", i), i, cache.DefaultExpiration)
+c.Set(fmt.Sprintf("key%d", i), i, cache.DefaultExpiration)
 }
 c.ResumeJanitor()
 ```
 
 2. **Balance cleanup frequency:**
+
 ```go
 // Too aggressive - wastes CPU
 c.SetJanitorInterval(100 * time.Millisecond)
@@ -312,6 +320,7 @@ c.SetJanitorInterval(5 * time.Minute)
 ```
 
 3. **Use pause during critical sections:**
+
 ```go
 // Pause during critical operation
 c.PauseJanitor()
@@ -319,7 +328,7 @@ err := performCriticalOperation()
 c.ResumeJanitor()
 
 if err != nil {
-    // Handle error
+// Handle error
 }
 ```
 
@@ -330,24 +339,24 @@ Track cleanup activity with eviction callbacks:
 ```go
 var cleanupCount int64
 
-c.OnEvicted(func(key string, value any) {
-    atomic.AddInt64(&cleanupCount, 1)
+c.OnEvicted(func (key string, value any) {
+atomic.AddInt64(&cleanupCount, 1)
 })
 
 // Monitor cleanup rate
-go func() {
-    ticker := time.NewTicker(1 * time.Minute)
-    for range ticker.C {
-        count := atomic.SwapInt64(&cleanupCount, 0)
-        fmt.Printf("Items cleaned in last minute: %d\n", count)
+go func () {
+ticker := time.NewTicker(1 * time.Minute)
+for range ticker.C {
+count := atomic.SwapInt64(&cleanupCount, 0)
+fmt.Printf("Items cleaned in last minute: %d\n", count)
 
-        // Adjust interval based on cleanup rate
-        if count > 1000 {
-            c.SetJanitorInterval(30 * time.Second)
-        } else {
-            c.SetJanitorInterval(5 * time.Minute)
-        }
-    }
+// Adjust interval based on cleanup rate
+if count > 1000 {
+c.SetJanitorInterval(30 * time.Second)
+} else {
+c.SetJanitorInterval(5 * time.Minute)
+}
+}
 }()
 ```
 
@@ -357,12 +366,12 @@ go func() {
 
 ```go
 func bulkLoad(c *cache.Cache, items map[string]any) {
-    c.PauseJanitor()
-    defer c.ResumeJanitor()
+c.PauseJanitor()
+defer c.ResumeJanitor()
 
-    for k, v := range items {
-        c.Set(k, v, cache.DefaultExpiration)
-    }
+for k, v := range items {
+c.Set(k, v, cache.DefaultExpiration)
+}
 }
 ```
 
@@ -370,20 +379,20 @@ func bulkLoad(c *cache.Cache, items map[string]any) {
 
 ```go
 func performMaintenance(c *cache.Cache) {
-    c.PauseJanitor()
-    defer c.ResumeJanitor()
+c.PauseJanitor()
+defer c.ResumeJanitor()
 
-    // Perform maintenance tasks
-    c.DeleteExpired()
+// Perform maintenance tasks
+c.DeleteExpired()
 
-    // Compact or reorganize
-    items := c.Items()
-    c.Flush()
-    for k, item := range items {
-        if !item.Expired() {
-            c.Set(k, item.Object, time.Until(time.Unix(0, item.Expiration)))
-        }
-    }
+// Compact or reorganize
+items := c.Items()
+c.Flush()
+for k, item := range items {
+if !item.Expired() {
+c.Set(k, item.Object, time.Until(time.Unix(0, item.Expiration)))
+}
+}
 }
 ```
 
@@ -391,16 +400,16 @@ func performMaintenance(c *cache.Cache) {
 
 ```go
 func shutdown(c *cache.Cache) {
-    // Pause janitor
-    c.PauseJanitor()
+// Pause janitor
+c.PauseJanitor()
 
-    // Clean up expired items one last time
-    c.DeleteExpired()
+// Clean up expired items one last time
+c.DeleteExpired()
 
-    // Save to disk
-    c.SaveFile("cache_backup.gob")
+// Save to disk
+c.SaveFile("cache_backup.gob")
 
-    // No need to resume - app is shutting down
+// No need to resume - app is shutting down
 }
 ```
 
