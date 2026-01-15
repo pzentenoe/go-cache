@@ -1,19 +1,10 @@
-linters-settings:
-  revive:
-  # Configura revive si es necesario. Revive es altamente configurable.
-  govet:
-    enable:
-      - fieldalignment
+version: 2
 
 linters:
-  disable-all: true
+  disable:
+    - errcheck
   enable:
     #- revive
     - unused
     #- govet
-    - exportloopref
-
-issues:
-  exclude-use-default: false
-  exclude-files:
-    - "_test\\.go$"
+    - copyloopvar

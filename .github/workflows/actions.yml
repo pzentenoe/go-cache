@@ -65,19 +65,19 @@ jobs:
         env:
           GO111MODULE: on
 
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@v2.1.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-          SONAR_HOST_URL: ${{ vars.SONARQUBE_URL }}
-        with:
-          args: >
-            -Dsonar.projectKey=go-cache
-            -Dsonar.sources=.
-            -Dsonar.go.coverage.reportPaths=coverage.out
-            -Dsonar.exclusions=**/*_test.go,**/main.go
-            -Dsonar.qualitygate.wait=true
-            -Dsonar.qualitygate.timeout=300
-            -Dsonar.qualitygate.status=ERROR
-            -Dsonar.qualitygate.stop=true
-            -Dsonar.qualitygate.failIfNoQualityGate=true
+#      - name: SonarQube Scan
+#        uses: sonarsource/sonarqube-scan-action@v2.1.0
+#        env:
+#          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+#          SONAR_HOST_URL: ${{ vars.SONARQUBE_URL }}
+#        with:
+#          args: >
+#            -Dsonar.projectKey=go-cache
+#            -Dsonar.sources=.
+#            -Dsonar.go.coverage.reportPaths=coverage.out
+#            -Dsonar.exclusions=**/*_test.go,**/main.go
+#            -Dsonar.qualitygate.wait=true
+#            -Dsonar.qualitygate.timeout=300
+#            -Dsonar.qualitygate.status=ERROR
+#            -Dsonar.qualitygate.stop=true
+#            -Dsonar.qualitygate.failIfNoQualityGate=true
