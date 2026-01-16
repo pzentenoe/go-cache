@@ -58,6 +58,15 @@ func TestCache_SaveFile(t *testing.T) {
 		assert.Equal(t, "value1", items["key1"].Object)
 		assert.Equal(t, "value2", items["key2"].Object)
 	})
+
+	t.Run("SaveFile with invalid path", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key1", "value1", NoExpiration)
+
+		// Try to save to an invalid directory
+		err := c.SaveFile("/invalid/path/to/file.gob")
+		assert.Error(t, err)
+	})
 }
 
 func TestCache_Load(t *testing.T) {
@@ -82,6 +91,45 @@ func TestCache_Load(t *testing.T) {
 		assert.True(t, found)
 		assert.Equal(t, "value1", val)
 
+		val, found = c.Get("key2")
+		assert.True(t, found)
+		assert.Equal(t, "value2", val)
+	})
+
+	t.Run("Load with invalid data", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+
+		// Try to load invalid data
+		var buf bytes.Buffer
+		buf.WriteString("invalid gob data")
+
+		err := c.Load(&buf)
+		assert.Error(t, err)
+	})
+
+	t.Run("Load does not overwrite existing non-expired items", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key1", "existing_value", NoExpiration)
+
+		// Prepare data to load with the same key
+		items := map[string]Item{
+			"key1": {Object: "new_value", Expiration: 0},
+			"key2": {Object: "value2", Expiration: 0},
+		}
+		var buf bytes.Buffer
+		enc := gob.NewEncoder(&buf)
+		err := enc.Encode(&items)
+		assert.NoError(t, err)
+
+		err = c.Load(&buf)
+		assert.NoError(t, err)
+
+		// Verify that key1 still has the original value
+		val, found := c.Get("key1")
+		assert.True(t, found)
+		assert.Equal(t, "existing_value", val)
+
+		// Verify that key2 was loaded
 		val, found = c.Get("key2")
 		assert.True(t, found)
 		assert.Equal(t, "value2", val)
@@ -119,5 +167,12 @@ func TestCache_LoadFile(t *testing.T) {
 		val, found = c.Get("key2")
 		assert.True(t, found)
 		assert.Equal(t, "value2", val)
+	})
+
+	t.Run("LoadFile with non-existent file", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+
+		err := c.LoadFile("nonexistent_file.gob")
+		assert.Error(t, err)
 	})
 }

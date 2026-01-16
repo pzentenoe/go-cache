@@ -230,6 +230,22 @@ func TestCache_DeleteExpired(t *testing.T) {
 			t.Error("Expected not to find the expired item, but found one")
 		}
 	})
+
+	t.Run("DeleteExpired with onEvicted callback", func(t *testing.T) {
+		evictedKeys := []string{}
+		cache.OnEvicted(func(k string, v any) {
+			evictedKeys = append(evictedKeys, k)
+		})
+
+		cache.Set("key3", "value3", 100*time.Millisecond)
+		cache.Set("key4", "value4", 100*time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
+		cache.DeleteExpired()
+
+		if len(evictedKeys) != 2 {
+			t.Errorf("Expected 2 evicted keys, got %d", len(evictedKeys))
+		}
+	})
 }
 
 func TestCache_OnEvicted(t *testing.T) {

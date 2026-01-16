@@ -185,6 +185,20 @@ func TestCache_IncrementFloat(t *testing.T) {
 		err := c.IncrementFloat("nonexistent", 5.0)
 		assert.Error(t, err)
 	})
+
+	t.Run("Increment non-float type", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", "not a float", DefaultExpiration)
+		err := c.IncrementFloat("key", 5.0)
+		assert.Error(t, err)
+	})
+
+	t.Run("Increment non-float int type", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", 10, DefaultExpiration)
+		err := c.IncrementFloat("key", 5.0)
+		assert.Error(t, err)
+	})
 }
 
 func TestCache_IncrementInt(t *testing.T) {
@@ -443,6 +457,134 @@ func TestCache_IncrementFloat64(t *testing.T) {
 	t.Run("Increment non-existent key", func(t *testing.T) {
 		c := New(DefaultExpiration, 0)
 		_, err := c.IncrementFloat64("nonexistent", 5)
+		assert.Error(t, err)
+	})
+}
+
+func TestCache_IncrementTyped_Overflow(t *testing.T) {
+	t.Run("IncrementInt overflow with positive n", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", 9223372036854775807, DefaultExpiration) // math.MaxInt64
+		_, err := c.IncrementInt("key", 1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementInt underflow with negative n", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", -9223372036854775808, DefaultExpiration) // math.MinInt64
+		_, err := c.IncrementInt("key", -1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementInt8 overflow with positive n", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", int8(127), DefaultExpiration) // math.MaxInt8
+		_, err := c.IncrementInt8("key", 1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementInt8 underflow with negative n", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", int8(-128), DefaultExpiration) // math.MinInt8
+		_, err := c.IncrementInt8("key", -1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementInt16 overflow with positive n", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", int16(32767), DefaultExpiration) // math.MaxInt16
+		_, err := c.IncrementInt16("key", 1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementInt16 underflow with negative n", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", int16(-32768), DefaultExpiration) // math.MinInt16
+		_, err := c.IncrementInt16("key", -1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementInt32 overflow with positive n", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", int32(2147483647), DefaultExpiration) // math.MaxInt32
+		_, err := c.IncrementInt32("key", 1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementInt32 underflow with negative n", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", int32(-2147483648), DefaultExpiration) // math.MinInt32
+		_, err := c.IncrementInt32("key", -1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementInt64 overflow with positive n", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", int64(9223372036854775807), DefaultExpiration) // math.MaxInt64
+		_, err := c.IncrementInt64("key", 1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementInt64 underflow with negative n", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", int64(-9223372036854775808), DefaultExpiration) // math.MinInt64
+		_, err := c.IncrementInt64("key", -1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementUint overflow", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", uint(18446744073709551615), DefaultExpiration) // math.MaxUint64
+		_, err := c.IncrementUint("key", 1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementUintptr overflow", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", uintptr(18446744073709551615), DefaultExpiration) // math.MaxUint
+		_, err := c.IncrementUintptr("key", 1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementUint8 overflow", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", uint8(255), DefaultExpiration) // math.MaxUint8
+		_, err := c.IncrementUint8("key", 1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementUint16 overflow", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", uint16(65535), DefaultExpiration) // math.MaxUint16
+		_, err := c.IncrementUint16("key", 1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementUint32 overflow", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", uint32(4294967295), DefaultExpiration) // math.MaxUint32
+		_, err := c.IncrementUint32("key", 1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementUint64 overflow", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", uint64(18446744073709551615), DefaultExpiration) // math.MaxUint64
+		_, err := c.IncrementUint64("key", 1)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementFloat32 overflow", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", float32(3.4e38), DefaultExpiration) // Near math.MaxFloat32
+		_, err := c.IncrementFloat32("key", 1e38)
+		assert.Error(t, err)
+	})
+
+	t.Run("IncrementFloat64 overflow", func(t *testing.T) {
+		c := New(DefaultExpiration, 0)
+		c.Set("key", float64(1.7e308), DefaultExpiration) // Near math.MaxFloat64
+		_, err := c.IncrementFloat64("key", 1e308)
 		assert.Error(t, err)
 	})
 }
