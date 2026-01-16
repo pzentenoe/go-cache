@@ -4,7 +4,7 @@ Runtime control over automatic cleanup of expired items.
 
 ## Overview
 
-The janitor is a background goroutine that automatically deletes expired items at regular intervals. go-cache v2.0+
+The janitor is a background goroutine that automatically deletes expired items at regular intervals. go-cache
 provides methods to control janitor behavior at runtime.
 
 ## Default Behavior
@@ -417,4 +417,5 @@ c.SaveFile("cache_backup.gob")
 
 - [API Reference](api-reference.md)
 - [Getting Started](getting-started.md)
-- [Examples](../examples/janitor/)
+- [Janitor Control Example](../examples/janitor/) - Hands-on demonstration
+- [Best Practices](getting-started.md#best-practices) - Memory management tips

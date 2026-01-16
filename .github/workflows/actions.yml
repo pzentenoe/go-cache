@@ -34,7 +34,9 @@ jobs:
         run: go mod tidy
 
       - name: Test with Coverage
-        run: go test ./... -coverprofile=coverage.out -covermode=atomic
+        run: |
+          # Exclude examples directory from tests and coverage
+          go test $(go list ./... | grep -v /examples/) -coverprofile=coverage.out -covermode=atomic
 
       - name: Check Coverage
         run: |

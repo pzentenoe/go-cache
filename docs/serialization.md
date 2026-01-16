@@ -126,19 +126,21 @@ user := &User{Name: "Bob"}
 c.Set("userptr", user, cache.DefaultExpiration)
 ```
 
-### Custom Types with Gob Registration
+### Custom Types with Gob
 
-For custom types, Gob automatically registers them during Save():
+Basic struct types work automatically with Gob:
 
 ```go
 type CustomStruct struct {
-Field1 string
-Field2 int
+    Field1 string
+    Field2 int
 }
 
 c.Set("custom", CustomStruct{"value", 123}, cache.DefaultExpiration)
-c.SaveFile("cache.gob") // Automatically registers CustomStruct
+c.SaveFile("cache.gob") // Basic structs are handled automatically
 ```
+
+**Note:** Simple structs with exported fields work without explicit registration. For complex types (interfaces, embedded interfaces, or types requiring special handling), use `gob.Register()` as shown in the Troubleshooting section.
 
 ### Unsupported Types ❌
 
@@ -438,16 +440,28 @@ During serialization:
 
 ## Troubleshooting
 
-### "gob: type not registered"
+### "gob: type not registered" or encoding errors
+
+For complex types (interfaces, function types, or types with unexported fields), register them explicitly:
 
 ```go
-// Register custom types before saving
-type MyType struct { ... }
+type MyComplexType struct { ... }
 
 func init() {
-gob.Register(MyType{})
+    gob.Register(MyComplexType{})
+    gob.Register(&MyComplexType{}) // If storing pointers
 }
 ```
+
+**When to use `gob.Register()`:**
+- ✅ Storing interface{} values containing custom types
+- ✅ Types with embedded interfaces
+- ✅ Pointer types
+- ✅ When getting "gob: type not registered" errors
+
+**Not needed for:**
+- ❌ Simple structs with exported fields
+- ❌ Built-in types (string, int, bool, etc.)
 
 ### "shard count mismatch"
 
@@ -483,5 +497,7 @@ c.LoadFile("cache.gob")
 ## See Also
 
 - [API Reference](api-reference.md)
-- [Examples](../examples/serialization/)
+- [Serialization Example](../examples/serialization/) - Hands-on demonstration
+- [Getting Started Guide](getting-started.md) - Core concepts
+- [Sharded Cache Guide](sharded-cache.md) - Serializing sharded caches
 - [Go Gob Documentation](https://pkg.go.dev/encoding/gob)

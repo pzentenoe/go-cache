@@ -287,12 +287,14 @@ func main() {
 }
 ```
 
-Expected output:
+Expected output (actual numbers may vary by system):
 
 ```
 Standard Cache: 1000000 ops in 2.5s (400000 ops/sec)
 Sharded Cache (32 shards): 1000000 ops in 600ms (1666666 ops/sec)
 ```
+
+**Note:** Throughout this documentation, we use rounded reference numbers (~500,000 and ~2,000,000 ops/sec) for consistency and simplicity. Actual performance will vary based on hardware, Go version, workload characteristics, and system load. The key insight is the relative improvement: sharded cache typically delivers 3-4x better performance under high concurrency.
 
 ## Internal Structure
 
@@ -383,5 +385,6 @@ sc.Get("key")
 ## See Also
 
 - [API Reference](api-reference.md)
-- [Concurrency Guide](concurrency.md)
-- [Examples](../examples/sharded/)
+- [Getting Started Guide](getting-started.md)
+- [Concurrent Operations Example](../examples/concurrent/)
+- [Sharded Cache Example](../examples/sharded/)

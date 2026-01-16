@@ -13,7 +13,7 @@ High-performance, thread-safe in-memory cache for Go with expiration support and
 - ⚡ **High Performance**: Optimized for concurrent access with optional sharding
 - 🔒 **Thread-Safe**: All operations protected with RWMutex
 - ⏰ **Flexible Expiration**: Per-item, default, or no expiration
-- 🧹 **Automatic Cleanup**: Background janitor with runtime control
+- 🧹 **Janitor**: Background cleanup with runtime control
 - 💾 **Serialization**: Persist cache to disk using Gob encoding
 - 🛡️ **Overflow Protection**: Built-in protection for numeric operations
 - 📊 **High Concurrency**: Sharded cache for reduced lock contention (2-4x faster)
@@ -92,12 +92,14 @@ cd examples/basic && go run main.go
 
 ## Core Operations
 
+### Basic CRUD
+
 ```go
 // Set operations
 c.Set("key", "value", cache.DefaultExpiration)
 c.SetDefault("key", "value")
-c.Add("key", "value", 5*time.Minute) // Only if not exists
-c.Replace("key", "new", 5*time.Minute)    // Only if exists
+c.Add("key", "value", 5*time.Minute)    // Only if not exists
+c.Replace("key", "new", 5*time.Minute)  // Only if exists
 
 // Get operations
 val, found := c.Get("key")
@@ -106,48 +108,46 @@ val, expTime, found := c.GetWithExpiration("key")
 // Delete operations
 c.Delete("key")
 c.DeleteExpired() // Remove expired items
-c.Flush() // Remove all items
+c.Flush()         // Remove all items
+```
 
-// Numeric operations (with overflow protection)
+### Numeric Operations
+
+All numeric operations include overflow/underflow protection:
+
+```go
+// Increment/Decrement
 c.Increment("counter", 1)
 c.Decrement("counter", 1)
 c.IncrementFloat("price", 5.50)
 
-// Type-safe operations
+// Type-safe operations with error handling
 result, err := c.IncrementUint64("views", 100)
 if err != nil {
-// Overflow would occur
+    // Overflow would occur
 }
+```
 
-// Serialization
+### Persistence
+
+```go
+// Save and load cache to/from disk
 c.SaveFile("cache.gob")
 c.LoadFile("cache.gob")
+```
 
-// Janitor control (v2.0+)
+### Janitor Control
+
+```go
+// Runtime cleanup management
 c.PauseJanitor()
 c.ResumeJanitor()
 c.SetJanitorInterval(5 * time.Minute)
 ```
 
-## What's New in v2.0
+## Recent Updates
 
-### Enhanced Features
-
-- **Overflow/Underflow Protection**: All increment/decrement operations include boundary checks
-- **Complete ShardedCache API**: Full feature parity with standard Cache
-- **Janitor Control**: Runtime control over automatic cleanup
-    - `PauseJanitor()` / `ResumeJanitor()` - Pause/resume cleanup
-    - `SetJanitorInterval()` - Dynamically change cleanup frequency
-- **Improved Thread Safety**: Optimized channel usage
-- **Go 1.25 Support**: Latest Go version compatibility
-
-### Performance Improvements
-
-- Test coverage: 80.8% → 92.9%
-- Sharded cache: 2-4x faster under high concurrency
-- Comprehensive concurrency and stress tests
-
-See [CHANGELOG.md](CHANGELOG.md) for complete details.
+The latest release adds overflow protection, janitor control, and complete ShardedCache API parity. See [CHANGELOG.md](CHANGELOG.md) for full version history and release notes.
 
 ## Performance
 
@@ -179,52 +179,40 @@ All operations are thread-safe and can be called from multiple goroutines:
 ```go
 var wg sync.WaitGroup
 for i := 0; i < 100; i++ {
-wg.Add(1)
-go func (id int) {
-defer wg.Done()
-c.Set(fmt.Sprintf("key%d", id), id, cache.DefaultExpiration)
-c.Get(fmt.Sprintf("key%d", id))
-}(i)
+    wg.Add(1)
+    go func(id int) {
+        defer wg.Done()
+        c.Set(fmt.Sprintf("key%d", id), id, cache.DefaultExpiration)
+        c.Get(fmt.Sprintf("key%d", id))
+    }(i)
 }
 wg.Wait()
 ```
 
-## Testing
+## Working with Types
 
-```bash
-# Run all tests
-go test ./...
-
-# Run with coverage
-go test -cover ./...
-
-# Run with race detector
-go test -race ./...
-
-# Run specific example
-cd examples/basic && go run main.go
-```
-
-Current test coverage: **92.9%**
-
-## Supported Types
-
-Cache supports any Go type via `interface{}`:
+The cache uses `interface{}` internally, supporting any Go type. Use type assertions when retrieving values:
 
 ```go
-// Basic types
-c.Set("string", "hello", cache.DefaultExpiration)
-c.Set("int", 42, cache.DefaultExpiration)
-c.Set("float", 3.14, cache.DefaultExpiration)
+// Storing values
+c.Set("user", User{Name: "Alice"}, cache.DefaultExpiration)
+c.Set("count", 42, cache.DefaultExpiration)
 
-// Structs
-type User struct { Name string; Email string }
-c.Set("user", User{Name: "Alice", Email: "alice@example.com"}, cache.DefaultExpiration)
+// Retrieving with type assertion
+if val, found := c.Get("user"); found {
+    user := val.(User)  // Type assertion
+    fmt.Println(user.Name)
+}
 
-// Slices, Maps
-c.Set("slice", []int{1, 2, 3}, cache.DefaultExpiration)
-c.Set("map", map[string]int{"a": 1, "b": 2}, cache.DefaultExpiration)
+// Safe type assertion
+if val, found := c.Get("count"); found {
+    if count, ok := val.(int); ok {
+        fmt.Println("Count:", count)
+    }
+}
 ```
+
+For numeric operations, use the built-in increment/decrement methods which handle types safely.
 
 ## Contributing
 
@@ -233,12 +221,14 @@ We welcome contributions! Please:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Add tests for new functionality
-4. Ensure tests pass: `go test -race ./...`
+4. Ensure tests pass and coverage is maintained (currently **92.9%**):
+   ```bash
+   go test -race ./...        # Run with race detector
+   go test -cover ./...       # Check coverage
+   ```
 5. Commit your changes (`git commit -m 'Add amazing feature'`)
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## License
 
@@ -263,7 +253,3 @@ Thank you for your support! ❤️
 ## Author
 
 **Pablo Zenteno** - [pzentenoe](https://github.com/pzentenoe)
-
----
-
-**Looking for more examples?** Check the [`examples/`](examples/) directory for runnable code samples.

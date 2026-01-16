@@ -210,6 +210,65 @@ c.Set(fmt.Sprintf("key%d", id), id, cache.DefaultExpiration)
 wg.Wait()
 ```
 
+## Best Practices
+
+### Choosing Expiration Times
+
+- **Short-lived data (1-5 minutes)**: API responses, session tokens
+- **Medium-lived data (5-30 minutes)**: User preferences, configuration
+- **Long-lived data (1+ hours)**: Static content, rarely-changing data
+- **No expiration**: Use `cache.NoExpiration` sparingly (requires manual cleanup)
+
+### When to Use Sharded Cache
+
+Use `NewSharded()` when:
+- ✅ You have 100+ concurrent goroutines accessing the cache
+- ✅ Profiling shows lock contention on cache operations
+- ✅ Maximum throughput is critical
+
+Stick with standard `New()` when:
+- ❌ Low concurrency (< 10 goroutines)
+- ❌ Small dataset (< 1,000 items)
+- ❌ Simplicity is more important than performance
+
+### Memory Management
+
+- Set appropriate expiration times to prevent unbounded growth
+- Use `Flush()` to clear cache when needed (e.g., during maintenance)
+- Monitor memory usage with `ItemCount()`
+- Consider pausing the janitor during bulk operations
+
+### Error Handling
+
+Always check return values:
+```go
+// Check if item exists
+if val, found := c.Get("key"); found {
+    // Safe to use val
+}
+
+// Handle overflow errors
+result, err := c.IncrementUint64("counter", 1)
+if err != nil {
+    log.Printf("Increment failed: %v", err)
+}
+```
+
+### Type Safety
+
+Use safe type assertions:
+```go
+// Safe: checks type before using
+if val, found := c.Get("user"); found {
+    if user, ok := val.(User); ok {
+        fmt.Println(user.Name)
+    }
+}
+
+// Unsafe: can panic
+user := val.(User)  // Only use if you're certain of the type
+```
+
 ## Next Steps
 
 - [API Reference](api-reference.md) - Complete method documentation
