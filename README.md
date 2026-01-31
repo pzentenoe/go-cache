@@ -6,6 +6,9 @@
 ![License](https://img.shields.io/github/license/pzentenoe/go-cache.svg)
 ![GitHub release](https://img.shields.io/github/v/release/pzentenoe/go-cache.svg)
 
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B60042%2Fgit%40github.com%3Apzentenoe%2Fgo-cache.git.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B60042%2Fgit%40github.com%3Apzentenoe%2Fgo-cache.git?ref=badge_shield&issueType=license)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B60042%2Fgit%40github.com%3Apzentenoe%2Fgo-cache.git.svg?type=shield&issueType=security)](https://app.fossa.com/projects/custom%2B60042%2Fgit%40github.com%3Apzentenoe%2Fgo-cache.git?ref=badge_shield&issueType=security)
+
 High-performance, thread-safe in-memory cache for Go with expiration support and advanced features.
 
 ## Features
