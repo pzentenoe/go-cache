@@ -68,7 +68,7 @@ jobs:
           GO111MODULE: on
 
       - name: FOSSA Scan
-        uses: fossas/fossa-action@v3
+        uses: fossas/fossa-action@v1.7.0
         with:
           api-key: ${{ secrets.FOSSA_API_KEY }}
 
