@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-16
+
+### Refactored
+
+- **Error message constants**: Extracted all repeated error format strings (`errOverflowFormat`, `errUnderflowFormat`, `errItemNotFoundFormat`, etc.) into `constants.go` to eliminate duplication across `increment.go`, `decrement.go`, `cache.go`, `serialization.go`, and `sharded_cache.go`
+- **Removed dead parameter**: Eliminated unused `n any` parameter from private `increment()` and `decrement()` helper methods — the value was already captured by the closure and never read inside the function body
+- **Consistent item referencing**: Updated cache to use `map[string]*Item` for consistent item referencing and fixed potential underflow/overflow bugs in increment and decrement operations
+- **Janitor control enhancements**: Added janitor control improvements for sharded cache
+- **Idiomatic error creation**: Replaced `fmt.Errorf()` with `errors.New()` for error messages without format verbs, fixing `staticcheck SA1006` warnings
+
+### Added
+
+- **Pre-commit end-of-file fixer**: Updated pre-commit configuration to include end-of-file fixer hook
+
+### Fixed
+
+- **Underflow/overflow bugs**: Fixed potential underflow and overflow bugs in increment and decrement operations
+
+### Documentation
+
+- Fixed formatting in API reference for ShardedCache section
+- Added FOSSA status badges for license and security in README
+
+### CI/CD
+
+- Added FOSSA scan action to workflow for license compliance
+- Updated FOSSA action to version 1.7.0
+
+### Tests
+
+- Added tests for cache decrement and increment operations, including underflow and overflow cases
+- Updated test coverage command to exclude examples directory
+
 ## [1.1.0] - 2025-01-14
 
 ### Added
