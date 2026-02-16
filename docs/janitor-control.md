@@ -272,12 +272,12 @@ c.SetJanitorInterval(1 * time.Minute)
 
 ## Performance Considerations
 
-### Pause Overhead
+### Pause/Resume Overhead
 
-Pausing has minimal overhead:
+Pausing and resuming have minimal overhead:
 
-- Non-blocking operation
-- Single channel send
+- Non-blocking, mutex-protected operation
+- Idempotent: safe to call multiple times (no deadlock risk)
 - Immediate effect
 
 ### Interval Change Overhead
@@ -400,16 +400,14 @@ c.Set(k, item.Object, time.Until(time.Unix(0, item.Expiration)))
 
 ```go
 func shutdown(c *cache.Cache) {
-// Pause janitor
-c.PauseJanitor()
-
 // Clean up expired items one last time
 c.DeleteExpired()
 
 // Save to disk
 c.SaveFile("cache_backup.gob")
 
-// No need to resume - app is shutting down
+// Stop janitor goroutine explicitly
+c.Close()
 }
 ```
 

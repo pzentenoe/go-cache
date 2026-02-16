@@ -19,7 +19,7 @@ type ShardedCache interface {
 	DecrementFloat(k string, n float64) error
 	Delete(k string)
 	DeleteExpired()
-	Items() []map[string]*Item
+	Items() map[string]Item
 	ItemCount() int
 	OnEvicted(f func(string, any))
 	Flush()
@@ -30,6 +30,7 @@ type ShardedCache interface {
 	SaveFile(fname string) error
 	Load(r io.Reader) error
 	LoadFile(fname string) error
+	Close()
 }
 
 type shardedCache struct {

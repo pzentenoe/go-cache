@@ -86,6 +86,7 @@ Runnable examples in [`examples/`](examples/):
 - [Concurrent Operations](examples/concurrent/) - Thread-safe operations
 - [Overflow Protection](examples/overflow/) - Numeric operation safety
 - [Janitor Control](examples/janitor/) - Runtime cleanup management
+- [Filesystem Persistence](examples/filesystem/) - Production-ready cache persistence
 
 Run any example:
 
@@ -146,6 +147,9 @@ c.LoadFile("cache.gob")
 c.PauseJanitor()
 c.ResumeJanitor()
 c.SetJanitorInterval(5 * time.Minute)
+
+// Stop janitor goroutine when done
+c.Close()
 ```
 
 ## Recent Updates

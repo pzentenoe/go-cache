@@ -108,6 +108,7 @@ func (c *Cache) decrement(k string, decrementFunc func(any) (any, error)) error 
 		return err
 	}
 	v.Object = newValue
+	c.items[k] = v
 	return nil
 }
 
@@ -371,5 +372,6 @@ func (c *Cache) decrementTyped(k string, n any, zero any) operationResult {
 	default:
 		return operationResult{zero, fmt.Errorf(errUnsupportedTypeFormat, k)}
 	}
+	c.items[k] = v
 	return operationResult{v.Object, nil}
 }

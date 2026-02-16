@@ -189,6 +189,6 @@ func TestJanitorIntervalPersistence(t *testing.T) {
 
 		// Verify janitor interval was updated
 		assert.NotNil(t, c.janitor)
-		assert.Equal(t, newInterval, c.janitor.Interval)
+		assert.Equal(t, newInterval, c.janitor.interval)
 	})
 }

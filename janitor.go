@@ -2,36 +2,38 @@ package cache
 
 import (
 	"runtime"
+	"sync"
 	"time"
 )
 
 type janitor struct {
-	Interval       time.Duration
+	interval       time.Duration
 	stop           chan struct{}
-	pause          chan struct{}
-	resume         chan struct{}
 	updateInterval chan time.Duration
+	mu             sync.Mutex
+	paused         bool
 }
 
 func (j *janitor) Run(c *Cache) {
-	ticker := time.NewTicker(j.Interval)
+	j.mu.Lock()
+	ticker := time.NewTicker(j.interval)
+	j.mu.Unlock()
 	defer ticker.Stop()
-
-	paused := false
 
 	for {
 		select {
 		case <-ticker.C:
+			j.mu.Lock()
+			paused := j.paused
+			j.mu.Unlock()
 			if !paused {
 				c.DeleteExpired()
 			}
-		case <-j.pause:
-			paused = true
-		case <-j.resume:
-			paused = false
 		case newInterval := <-j.updateInterval:
 			ticker.Stop()
-			j.Interval = newInterval
+			j.mu.Lock()
+			j.interval = newInterval
+			j.mu.Unlock()
 			ticker = time.NewTicker(newInterval)
 		case <-j.stop:
 			return
@@ -39,17 +41,31 @@ func (j *janitor) Run(c *Cache) {
 	}
 }
 
+// Pause temporarily pauses the janitor.
+// Safe to call multiple times; subsequent calls are no-ops.
+func (j *janitor) Pause() {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	j.paused = true
+}
+
+// Resume resumes the janitor after a pause.
+// Safe to call multiple times; subsequent calls are no-ops.
+func (j *janitor) Resume() {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	j.paused = false
+}
+
 func stopJanitor(c *Cache) {
-	close(c.janitor.stop)
+	c.janitor.stop <- struct{}{}
 }
 
 func runJanitor(c *Cache, ci time.Duration) {
 	j := &janitor{
-		Interval:       ci,
-		stop:           make(chan struct{}),
-		pause:          make(chan struct{}),
-		resume:         make(chan struct{}),
-		updateInterval: make(chan time.Duration),
+		interval:       ci,
+		stop:           make(chan struct{}, 1),
+		updateInterval: make(chan time.Duration, 1),
 	}
 	c.janitor = j
 	go j.Run(c)

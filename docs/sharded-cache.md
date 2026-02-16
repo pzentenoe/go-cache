@@ -75,6 +75,9 @@ sc.SaveFile("cache.gob")
 sc.PauseJanitor()
 sc.ResumeJanitor()
 sc.SetJanitorInterval(5 * time.Minute)
+
+// Explicit cleanup
+sc.Close()
 ```
 
 ## Performance Comparison
@@ -305,27 +308,26 @@ Sharded Cache (32 shards): 1000000 ops in 600ms (1666666 ops/sec)
 
 ```
 ShardedCache
+├── Shared Janitor (single goroutine for all shards)
 ├── Shard 0 (Cache instance)
-│   ├── items map[string]*Item
-│   ├── mu sync.RWMutex
-│   └── janitor
+│   ├── items map[string]Item
+│   └── mu sync.RWMutex
 ├── Shard 1 (Cache instance)
-│   ├── items map[string]*Item
-│   ├── mu sync.RWMutex
-│   └── janitor
+│   ├── items map[string]Item
+│   └── mu sync.RWMutex
 ...
 └── Shard N (Cache instance)
-    ├── items map[string]*Item
-    ├── mu sync.RWMutex
-    └── janitor
+    ├── items map[string]Item
+    └── mu sync.RWMutex
 ```
 
 Each shard:
 
 - Has its own independent Cache instance
 - Has its own lock (no contention with other shards)
-- Has its own janitor for cleanup
-- Operates completely independently
+- Stores items as values (not pointers) for reduced GC pressure
+
+The sharded cache uses a single shared janitor that iterates over all shards during cleanup.
 
 ## Best Practices
 
@@ -368,8 +370,7 @@ Each shard:
     - Cannot change shard count after data is saved
 
 3. **Items() Method:**
-    - Returns slice of maps (one per shard)
-    - Not a single unified map like standard Cache
+    - Returns a single flat `map[string]Item` (unified view across all shards)
 
 ## Migration from Standard Cache
 

@@ -18,7 +18,7 @@ const (
 // Cache struct for cache control
 type Cache struct {
 	defaultExpiration time.Duration
-	items             map[string]*Item
+	items             map[string]Item
 	mu                sync.RWMutex
 	onEvicted         func(string, any)
 	janitor           *janitor
@@ -28,21 +28,12 @@ type Cache struct {
 // (DefaultExpiration), the cache's default expiration time is used. If it is -1
 // (NoExpiration), the item never expires.
 func (c *Cache) Set(k string, x any, d time.Duration) {
-	var e int64
-	if d == DefaultExpiration {
-		d = c.defaultExpiration
-	}
-	if d > 0 {
-		e = time.Now().Add(d).UnixNano()
-	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.items[k] = &Item{
-		Object:     x,
-		Expiration: e,
-	}
+	c.set(k, x, d)
 }
 
+// set is the unexported version of Set that assumes the caller holds the lock.
 func (c *Cache) set(k string, x any, d time.Duration) {
 	var e int64
 	if d == DefaultExpiration {
@@ -51,7 +42,7 @@ func (c *Cache) set(k string, x any, d time.Duration) {
 	if d > 0 {
 		e = time.Now().Add(d).UnixNano()
 	}
-	c.items[k] = &Item{
+	c.items[k] = Item{
 		Object:     x,
 		Expiration: e,
 	}
@@ -110,14 +101,11 @@ func (c *Cache) GetWithExpiration(k string) (any, time.Time, bool) {
 	defer c.mu.RUnlock()
 
 	item, found := c.items[k]
-	if !found {
+	if !found || item.Expired() {
 		return nil, time.Time{}, false
 	}
 
 	if item.Expiration > 0 {
-		if time.Now().UnixNano() > item.Expiration {
-			return nil, time.Time{}, false
-		}
 		return item.Object, time.Unix(0, item.Expiration), true
 	}
 
@@ -144,13 +132,14 @@ func (c *Cache) Delete(k string) {
 }
 
 func (c *Cache) delete(k string) (any, bool) {
-	if c.onEvicted != nil {
-		if v, found := c.items[k]; found {
-			delete(c.items, k)
-			return v.Object, true
-		}
+	v, found := c.items[k]
+	if !found {
+		return nil, false
 	}
 	delete(c.items, k)
+	if c.onEvicted != nil {
+		return v.Object, true
+	}
 	return nil, false
 }
 
@@ -195,23 +184,23 @@ func (c *Cache) OnEvicted(f func(string, any)) {
 func (c *Cache) Flush() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.items = make(map[string]*Item)
+	c.items = make(map[string]Item)
 }
 
 // PauseJanitor temporarily pauses the automatic cleanup of expired items.
 // The janitor will stop deleting expired items until ResumeJanitor is called.
-// This method has no effect if the janitor is not running.
+// Safe to call multiple times. This method has no effect if the janitor is not running.
 func (c *Cache) PauseJanitor() {
 	if c.janitor != nil {
-		c.janitor.pause <- struct{}{}
+		c.janitor.Pause()
 	}
 }
 
 // ResumeJanitor resumes the automatic cleanup of expired items after it was paused.
-// This method has no effect if the janitor is not running or not paused.
+// Safe to call multiple times. This method has no effect if the janitor is not running or not paused.
 func (c *Cache) ResumeJanitor() {
 	if c.janitor != nil {
-		c.janitor.resume <- struct{}{}
+		c.janitor.Resume()
 	}
 }
 
@@ -221,5 +210,15 @@ func (c *Cache) ResumeJanitor() {
 func (c *Cache) SetJanitorInterval(d time.Duration) {
 	if c.janitor != nil {
 		c.janitor.updateInterval <- d
+	}
+}
+
+// Close stops the janitor goroutine and releases resources.
+// After calling Close, the cache can still be used but expired items
+// will no longer be cleaned up automatically.
+func (c *Cache) Close() {
+	if c.janitor != nil {
+		c.janitor.stop <- struct{}{}
+		c.janitor = nil
 	}
 }

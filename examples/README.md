@@ -24,6 +24,9 @@ cd overflow && go run main.go
 
 # Run janitor control example
 cd janitor && go run main.go
+
+# Run filesystem persistence example
+cd filesystem && go run main.go
 ```
 
 ## Examples Overview
@@ -115,6 +118,20 @@ Demonstrates:
 
 **Best for:** Fine-tuning cache cleanup behavior
 
+### [filesystem/](filesystem/)
+
+**Production-ready cache persistence**
+
+Demonstrates:
+
+- Warm start (load cache from disk on startup)
+- Atomic save (write to temp file, then rename)
+- Periodic background save
+- Graceful shutdown with final save and `Close()`
+- Signal handling (Ctrl+C / SIGTERM)
+
+**Best for:** Applications that need cache persistence across restarts
+
 ## Quick Start
 
 If you're new to go-cache, start with these examples in order:
@@ -129,6 +146,7 @@ For specific use cases:
 - Need high performance? → **sharded/**
 - Need numeric counters? → **overflow/**
 - Need cleanup control? → **janitor/**
+- Need production persistence? → **filesystem/**
 
 ## Example Code Structure
 
@@ -171,6 +189,9 @@ fmt.Println(val)
 
 // Delete
 c.Delete("key")
+
+// Stop janitor and release resources when done
+c.Close()
 ```
 
 ### Type Assertions

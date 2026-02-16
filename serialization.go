@@ -32,17 +32,14 @@ func (c *Cache) SaveFile(fname string) error {
 		return err
 	}
 	defer fp.Close()
-	if err := c.Save(fp); err != nil {
-		return err
-	}
-	return nil
+	return c.Save(fp)
 }
 
 // Load Add (Gob-serialized) cache items from an io.Reader, excluding any items with
 // keys that already exist (and haven't expired) in the current cache.
 func (c *Cache) Load(r io.Reader) error {
 	dec := gob.NewDecoder(r)
-	items := map[string]*Item{}
+	items := map[string]Item{}
 	if err := dec.Decode(&items); err != nil {
 		return err
 	}

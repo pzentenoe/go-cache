@@ -2,10 +2,10 @@ package cache
 
 import (
 	"crypto/rand"
+	"log"
 	"math"
 	"math/big"
 	insecurerand "math/rand"
-	"os"
 	"runtime"
 	"time"
 )
@@ -15,7 +15,7 @@ func newShardedCache(n int, de time.Duration) *shardedCache {
 	rnd, err := rand.Int(rand.Reader, max)
 	var seed uint32
 	if err != nil {
-		os.Stderr.Write([]byte("WARNING: go-cache's newShardedCache failed to read from the system CSPRNG (/dev/urandom or equivalent.) Your system's security may be compromised. Continuing with an insecure seed.\n"))
+		log.Println("WARNING: go-cache's newShardedCache failed to read from the system CSPRNG. Continuing with an insecure seed.")
 		seed = insecurerand.Uint32()
 	} else {
 		seed = uint32(rnd.Uint64())
@@ -28,7 +28,7 @@ func newShardedCache(n int, de time.Duration) *shardedCache {
 	for i := 0; i < n; i++ {
 		c := &Cache{
 			defaultExpiration: de,
-			items:             make(map[string]*Item),
+			items:             make(map[string]Item),
 		}
 		sc.cs[i] = c
 	}

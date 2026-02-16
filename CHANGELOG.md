@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-02-16
+
+### Changes
+
+- **`map[string]*Item` changed to `map[string]Item`**: All internal maps and public APIs now use value semantics instead of pointers. This affects:
+    - `NewFrom()` parameter: `map[string]*Item` → `map[string]Item`
+    - `Cache.Items()` return type: `map[string]*Item` → `map[string]Item`
+    - `ShardedCache.Items()` return type: `[]map[string]*Item` → `map[string]Item` (now returns a flat unified map instead of per-shard slices)
+    - `Item.Expired()` receiver: `*Item` → `Item` (value receiver)
+
+### Added
+
+- **`Close()` method** for `Cache` and `ShardedCache`: Explicitly stops the janitor goroutine and releases resources, eliminating reliance on `runtime.SetFinalizer` for goroutine cleanup
+- **`Close()` added to `ShardedCache` interface**: Enables proper resource management through the interface
+
+### Fixed
+
+- **Janitor deadlock risk eliminated**: Replaced unbuffered `pause`/`resume` channels with `sync.Mutex` + boolean flag. `PauseJanitor()` and `ResumeJanitor()` are now idempotent and safe to call multiple times without blocking
+- **`Items()` no longer leaks internal state**: With value semantics, callers receive copies of items, preventing external mutation of cache data without locks
+- **`GetWithExpiration` duplicated expiration logic**: Now uses `item.Expired()` consistently instead of manually checking `time.Now().UnixNano() > item.Expiration`
+- **`delete()` asymmetric control flow**: Simplified to check existence first, then delete, then decide eviction notification
+
+### Refactored
+
+- **`Set`/`set` deduplication**: Exported `Set()` now delegates to unexported `set()` with proper lock management, eliminating duplicated expiration calculation logic
+- **`SaveFile` simplified return**: Removed redundant `if err != nil { return err }; return nil` pattern in favor of direct `return c.Save(fp)`
+- **Janitor channels buffered**: `stop` and `updateInterval` channels now use buffer of 1 to prevent potential blocking
+- **Factory stderr replaced with `log.Println`**: `newShardedCache` no longer writes directly to `os.Stderr`; uses standard `log` package instead
+
+### Performance
+
+- **Reduced GC pressure**: Value-based `Item` storage eliminates per-item heap allocations, significantly reducing garbage collector overhead for caches with many entries
+- **Better CPU cache locality**: Items stored as values in the map are more contiguous in memory, improving iteration performance
+
+### Documentation
+
+- Updated `api-reference.md`: Corrected `Items()`, `NewFrom()` signatures, `Expired()` receiver, added `Close()` documentation, noted idempotent behavior of `PauseJanitor`/`ResumeJanitor`
+- Updated `sharded-cache.md`: Corrected internal structure diagram (`map[string]Item`, single shared janitor), fixed `Items()` limitation description (now returns flat map)
+- Updated `janitor-control.md`: Corrected pause overhead description (mutex-based, not channel-based), updated graceful shutdown pattern to use `Close()`
+- Updated `serialization.md`: No API changes needed (uses `Save`/`Load` methods, not internal types)
+
 ## [1.2.0] - 2026-02-16
 
 ### Refactored

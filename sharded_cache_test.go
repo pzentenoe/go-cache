@@ -143,22 +143,15 @@ func TestShardedCache_Items(t *testing.T) {
 
 		items := sc.Items()
 
-		foundKey1 := false
-		foundKey2 := false
+		assert.Equal(t, 2, len(items))
 
-		for _, shardItems := range items {
-			if item, ok := shardItems["key1"]; ok {
-				assert.Equal(t, "value1", item.Object)
-				foundKey1 = true
-			}
-			if item, ok := shardItems["key2"]; ok {
-				assert.Equal(t, "value2", item.Object)
-				foundKey2 = true
-			}
-		}
+		item1, ok := items["key1"]
+		assert.True(t, ok)
+		assert.Equal(t, "value1", item1.Object)
 
-		assert.True(t, foundKey1)
-		assert.True(t, foundKey2)
+		item2, ok := items["key2"]
+		assert.True(t, ok)
+		assert.Equal(t, "value2", item2.Object)
 	})
 }
 
@@ -170,10 +163,7 @@ func TestShardedCache_Flush(t *testing.T) {
 		sc.Flush()
 
 		items := sc.Items()
-
-		for _, shardItems := range items {
-			assert.Empty(t, shardItems)
-		}
+		assert.Empty(t, items)
 	})
 }
 

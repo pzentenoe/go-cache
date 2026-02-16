@@ -21,7 +21,7 @@ Creates a new cache with the specified default expiration and cleanup interval.
 c := cache.New(5*time.Minute, 10*time.Minute)
 ```
 
-### `NewFrom(defaultExpiration, cleanupInterval time.Duration, items map[string]*Item) *Cache`
+### `NewFrom(defaultExpiration, cleanupInterval time.Duration, items map[string]Item) *Cache`
 
 Creates a cache from an existing items map.
 
@@ -288,9 +288,10 @@ c.DecrementFloat("price", 2.50) // 22.49
 
 ## Utility Methods
 
-### `Items() map[string]*Item`
+### `Items() map[string]Item`
 
-Returns a copy of all unexpired items.
+Returns a copy of all unexpired items. The returned map contains value copies,
+so modifications do not affect the cache.
 
 **Returns:** Map of all items in cache
 
@@ -350,6 +351,7 @@ log.Printf("Evicted: %s = %v", key, value)
 ### `PauseJanitor()`
 
 Temporarily pauses automatic cleanup of expired items.
+Safe to call multiple times; subsequent calls are no-ops.
 
 **Example:**
 
@@ -362,6 +364,7 @@ c.ResumeJanitor()
 ### `ResumeJanitor()`
 
 Resumes automatic cleanup after pause.
+Safe to call multiple times; subsequent calls are no-ops.
 
 ### `SetJanitorInterval(d time.Duration)`
 
@@ -375,6 +378,17 @@ Dynamically changes the cleanup interval.
 
 ```go
 c.SetJanitorInterval(5 * time.Minute)
+```
+
+### `Close()`
+
+Stops the janitor goroutine and releases resources. After calling Close, the cache
+can still be used but expired items will no longer be cleaned up automatically.
+
+**Example:**
+
+```go
+c.Close()
 ```
 
 ---
@@ -484,7 +498,7 @@ Expiration int64 // Expiration time in UnixNano
 }
 ```
 
-#### `(i *Item) Expired() bool`
+#### `(i Item) Expired() bool`
 
 Returns true if the item has expired.
 

@@ -22,7 +22,7 @@ func TestCache_Save(t *testing.T) {
 
 		// Decode the saved data to verify
 		dec := gob.NewDecoder(&buf)
-		items := map[string]*Item{}
+		items := map[string]Item{}
 		err = dec.Decode(&items)
 
 		assert.NoError(t, err)
@@ -50,7 +50,7 @@ func TestCache_SaveFile(t *testing.T) {
 		defer file.Close()
 
 		dec := gob.NewDecoder(file)
-		items := map[string]*Item{}
+		items := map[string]Item{}
 		err = dec.Decode(&items)
 
 		assert.NoError(t, err)
@@ -74,7 +74,7 @@ func TestCache_Load(t *testing.T) {
 		c := New(DefaultExpiration, 0)
 
 		// Prepare data to load
-		items := map[string]*Item{
+		items := map[string]Item{
 			"key1": {Object: "value1", Expiration: 0},
 			"key2": {Object: "value2", Expiration: 0},
 		}
@@ -112,7 +112,7 @@ func TestCache_Load(t *testing.T) {
 		c.Set("key1", "existing_value", NoExpiration)
 
 		// Prepare data to load with the same key
-		items := map[string]*Item{
+		items := map[string]Item{
 			"key1": {Object: "new_value", Expiration: 0},
 			"key2": {Object: "value2", Expiration: 0},
 		}
@@ -141,7 +141,7 @@ func TestCache_LoadFile(t *testing.T) {
 		c := New(DefaultExpiration, 0)
 
 		// Prepare data to load
-		items := map[string]*Item{
+		items := map[string]Item{
 			"key1": {Object: "value1", Expiration: 0},
 			"key2": {Object: "value2", Expiration: 0},
 		}
