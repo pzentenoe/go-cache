@@ -7,7 +7,7 @@ import (
 
 func TestNewCache(t *testing.T) {
 	t.Run("New cache with default expiration", func(t *testing.T) {
-		cache := newCache(DefaultExpiration, make(map[string]Item))
+		cache := newCache(DefaultExpiration, make(map[string]*Item))
 		if cache.defaultExpiration != DefaultExpiration {
 			t.Errorf("Expected default expiration to be %v, got %v", DefaultExpiration, cache.defaultExpiration)
 		}
@@ -17,7 +17,7 @@ func TestNewCache(t *testing.T) {
 	})
 
 	t.Run("New cache with NoExpiration", func(t *testing.T) {
-		cache := newCache(NoExpiration, make(map[string]Item))
+		cache := newCache(NoExpiration, make(map[string]*Item))
 		if cache.defaultExpiration != NoExpiration {
 			t.Errorf("Expected default expiration to be %v, got %v", NoExpiration, cache.defaultExpiration)
 		}
@@ -29,7 +29,7 @@ func TestNewCache(t *testing.T) {
 
 func TestNewCacheWithJanitor(t *testing.T) {
 	t.Run("New cache with janitor", func(t *testing.T) {
-		cache := newCacheWithJanitor(DefaultExpiration, 1*time.Minute, make(map[string]Item))
+		cache := newCacheWithJanitor(DefaultExpiration, 1*time.Minute, make(map[string]*Item))
 		if cache.defaultExpiration != DefaultExpiration {
 			t.Errorf("Expected default expiration to be %v, got %v", DefaultExpiration, cache.defaultExpiration)
 		}
@@ -42,7 +42,7 @@ func TestNewCacheWithJanitor(t *testing.T) {
 	})
 
 	t.Run("New cache without janitor", func(t *testing.T) {
-		cache := newCacheWithJanitor(DefaultExpiration, 0, make(map[string]Item))
+		cache := newCacheWithJanitor(DefaultExpiration, 0, make(map[string]*Item))
 		if cache.defaultExpiration != DefaultExpiration {
 			t.Errorf("Expected default expiration to be %v, got %v", DefaultExpiration, cache.defaultExpiration)
 		}
@@ -85,7 +85,7 @@ func TestNew(t *testing.T) {
 
 func TestNewFrom(t *testing.T) {
 	t.Run("NewFrom with default expiration and cleanup interval", func(t *testing.T) {
-		items := make(map[string]Item)
+		items := make(map[string]*Item)
 		cache := NewFrom(DefaultExpiration, 1*time.Minute, items)
 		if cache.defaultExpiration != DefaultExpiration {
 			t.Errorf("Expected default expiration to be %v, got %v", DefaultExpiration, cache.defaultExpiration)
@@ -99,7 +99,7 @@ func TestNewFrom(t *testing.T) {
 	})
 
 	t.Run("NewFrom with NoExpiration and no cleanup interval", func(t *testing.T) {
-		items := make(map[string]Item)
+		items := make(map[string]*Item)
 		cache := NewFrom(NoExpiration, 0, items)
 		if cache.defaultExpiration != NoExpiration {
 			t.Errorf("Expected default expiration to be %v, got %v", NoExpiration, cache.defaultExpiration)
@@ -113,7 +113,7 @@ func TestNewFrom(t *testing.T) {
 	})
 
 	t.Run("NewFrom with existing items map", func(t *testing.T) {
-		items := map[string]Item{
+		items := map[string]*Item{
 			"key1": {Object: "value1", Expiration: 0},
 		}
 		cache := NewFrom(DefaultExpiration, 1*time.Minute, items)

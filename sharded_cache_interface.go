@@ -19,10 +19,13 @@ type ShardedCache interface {
 	DecrementFloat(k string, n float64) error
 	Delete(k string)
 	DeleteExpired()
-	Items() []map[string]Item
+	Items() []map[string]*Item
 	ItemCount() int
 	OnEvicted(f func(string, any))
 	Flush()
+	PauseJanitor()
+	ResumeJanitor()
+	SetJanitorInterval(d time.Duration)
 	Save(w io.Writer) error
 	SaveFile(fname string) error
 	Load(r io.Reader) error

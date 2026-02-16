@@ -70,6 +70,11 @@ sc.Delete("key")
 sc.Increment("counter", 1)
 sc.IncrementFloat("price", 5.0)
 sc.SaveFile("cache.gob")
+
+// Janitor control
+sc.PauseJanitor()
+sc.ResumeJanitor()
+sc.SetJanitorInterval(5 * time.Minute)
 ```
 
 ## Performance Comparison
@@ -301,16 +306,16 @@ Sharded Cache (32 shards): 1000000 ops in 600ms (1666666 ops/sec)
 ```
 ShardedCache
 ├── Shard 0 (Cache instance)
-│   ├── items map[string]Item
+│   ├── items map[string]*Item
 │   ├── mu sync.RWMutex
 │   └── janitor
 ├── Shard 1 (Cache instance)
-│   ├── items map[string]Item
+│   ├── items map[string]*Item
 │   ├── mu sync.RWMutex
 │   └── janitor
 ...
 └── Shard N (Cache instance)
-    ├── items map[string]Item
+    ├── items map[string]*Item
     ├── mu sync.RWMutex
     └── janitor
 ```

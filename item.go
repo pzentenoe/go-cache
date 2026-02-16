@@ -11,15 +11,15 @@ type Item struct {
 }
 
 // Expired Returns true if the item has expired.
-func (item Item) Expired() bool {
+func (item *Item) Expired() bool {
 	return item.Expiration > 0 && time.Now().UnixNano() > item.Expiration
 }
 
 // Items Copies all unexpired items in the cache into a new map and returns it.
-func (c *Cache) Items() map[string]Item {
+func (c *Cache) Items() map[string]*Item {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	m := make(map[string]Item, len(c.items))
+	m := make(map[string]*Item, len(c.items))
 	for k, v := range c.items {
 		if !v.Expired() {
 			m[k] = v

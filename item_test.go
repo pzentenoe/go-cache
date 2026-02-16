@@ -7,7 +7,7 @@ import (
 
 func TestItem_Expired(t *testing.T) {
 	t.Run("Not expired", func(t *testing.T) {
-		item := Item{
+		item := &Item{
 			Object:     "test",
 			Expiration: time.Now().Add(1 * time.Hour).UnixNano(),
 		}
@@ -17,7 +17,7 @@ func TestItem_Expired(t *testing.T) {
 	})
 
 	t.Run("Expired", func(t *testing.T) {
-		item := Item{
+		item := &Item{
 			Object:     "test",
 			Expiration: time.Now().Add(-1 * time.Hour).UnixNano(),
 		}
@@ -27,7 +27,7 @@ func TestItem_Expired(t *testing.T) {
 	})
 
 	t.Run("No expiration", func(t *testing.T) {
-		item := Item{
+		item := &Item{
 			Object:     "test",
 			Expiration: 0,
 		}

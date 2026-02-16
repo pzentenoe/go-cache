@@ -62,8 +62,8 @@ func (sc *shardedCache) DeleteExpired() {
 	}
 }
 
-func (sc *shardedCache) Items() []map[string]Item {
-	res := make([]map[string]Item, len(sc.cs))
+func (sc *shardedCache) Items() []map[string]*Item {
+	res := make([]map[string]*Item, len(sc.cs))
 	for i, v := range sc.cs {
 		res[i] = v.Items()
 	}
@@ -87,6 +87,27 @@ func (sc *shardedCache) OnEvicted(f func(string, any)) {
 func (sc *shardedCache) Flush() {
 	for _, v := range sc.cs {
 		v.Flush()
+	}
+}
+
+// PauseJanitor temporarily pauses the automatic cleanup of expired items.
+func (sc *shardedCache) PauseJanitor() {
+	if sc.janitor != nil {
+		sc.janitor.pause <- struct{}{}
+	}
+}
+
+// ResumeJanitor resumes the automatic cleanup of expired items after it was paused.
+func (sc *shardedCache) ResumeJanitor() {
+	if sc.janitor != nil {
+		sc.janitor.resume <- struct{}{}
+	}
+}
+
+// SetJanitorInterval dynamically updates the janitor's cleanup interval.
+func (sc *shardedCache) SetJanitorInterval(d time.Duration) {
+	if sc.janitor != nil {
+		sc.janitor.updateInterval <- d
 	}
 }
 
@@ -148,7 +169,7 @@ func (sc *shardedCache) Load(r io.Reader) error {
 
 	// Load items for each shard
 	for i := 0; i < numShards; i++ {
-		items := map[string]Item{}
+		items := map[string]*Item{}
 		if err := dec.Decode(&items); err != nil {
 			return err
 		}

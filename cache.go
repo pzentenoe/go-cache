@@ -18,7 +18,7 @@ const (
 // Cache struct for cache control
 type Cache struct {
 	defaultExpiration time.Duration
-	items             map[string]Item
+	items             map[string]*Item
 	mu                sync.RWMutex
 	onEvicted         func(string, any)
 	janitor           *janitor
@@ -37,7 +37,7 @@ func (c *Cache) Set(k string, x any, d time.Duration) {
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.items[k] = Item{
+	c.items[k] = &Item{
 		Object:     x,
 		Expiration: e,
 	}
@@ -51,7 +51,7 @@ func (c *Cache) set(k string, x any, d time.Duration) {
 	if d > 0 {
 		e = time.Now().Add(d).UnixNano()
 	}
-	c.items[k] = Item{
+	c.items[k] = &Item{
 		Object:     x,
 		Expiration: e,
 	}
@@ -154,6 +154,11 @@ func (c *Cache) delete(k string) (any, bool) {
 	return nil, false
 }
 
+type operationResult struct {
+	value any
+	err   error
+}
+
 type keyAndValue struct {
 	key   string
 	value any
@@ -190,7 +195,7 @@ func (c *Cache) OnEvicted(f func(string, any)) {
 func (c *Cache) Flush() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.items = make(map[string]Item)
+	c.items = make(map[string]*Item)
 }
 
 // PauseJanitor temporarily pauses the automatic cleanup of expired items.

@@ -21,7 +21,7 @@ Creates a new cache with the specified default expiration and cleanup interval.
 c := cache.New(5*time.Minute, 10*time.Minute)
 ```
 
-### `NewFrom(defaultExpiration, cleanupInterval time.Duration, items map[string]Item) *Cache`
+### `NewFrom(defaultExpiration, cleanupInterval time.Duration, items map[string]*Item) *Cache`
 
 Creates a cache from an existing items map.
 
@@ -288,7 +288,7 @@ c.DecrementFloat("price", 2.50) // 22.49
 
 ## Utility Methods
 
-### `Items() map[string]Item`
+### `Items() map[string]*Item`
 
 Returns a copy of all unexpired items.
 
@@ -484,7 +484,7 @@ Expiration int64 // Expiration time in UnixNano
 }
 ```
 
-#### `(i Item) Expired() bool`
+#### `(i *Item) Expired() bool`
 
 Returns true if the item has expired.
 

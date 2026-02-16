@@ -42,7 +42,7 @@ func (c *Cache) SaveFile(fname string) error {
 // keys that already exist (and haven't expired) in the current cache.
 func (c *Cache) Load(r io.Reader) error {
 	dec := gob.NewDecoder(r)
-	items := map[string]Item{}
+	items := map[string]*Item{}
 	if err := dec.Decode(&items); err != nil {
 		return err
 	}

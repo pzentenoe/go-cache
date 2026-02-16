@@ -413,9 +413,29 @@ c.SaveFile("cache_backup.gob")
 }
 ```
 
+## Sharded Cache Janitor Control
+
+The sharded cache supports the same janitor control methods as the standard cache:
+
+```go
+sc := cache.NewSharded(5*time.Minute, 10*time.Minute, 16)
+
+// Pause automatic cleanup across all shards
+sc.PauseJanitor()
+
+// Resume automatic cleanup
+sc.ResumeJanitor()
+
+// Change cleanup interval
+sc.SetJanitorInterval(1 * time.Minute)
+```
+
+The sharded cache uses a single janitor that iterates over all shards when cleaning up expired items.
+
 ## See Also
 
 - [API Reference](api-reference.md)
+- [Sharded Cache](sharded-cache.md)
 - [Getting Started](getting-started.md)
 - [Janitor Control Example](../examples/janitor/) - Hands-on demonstration
 - [Best Practices](getting-started.md#best-practices) - Memory management tips

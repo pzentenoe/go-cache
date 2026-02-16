@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-func newCache(de time.Duration, m map[string]Item) *Cache {
+func newCache(de time.Duration, m map[string]*Item) *Cache {
 	if de == 0 {
 		de = DefaultExpiration
 	}
@@ -14,7 +14,7 @@ func newCache(de time.Duration, m map[string]Item) *Cache {
 	}
 }
 
-func newCacheWithJanitor(de, ci time.Duration, m map[string]Item) *Cache {
+func newCacheWithJanitor(de, ci time.Duration, m map[string]*Item) *Cache {
 	c := newCache(de, m)
 	if ci > 0 {
 		runJanitor(c, ci)
@@ -28,7 +28,7 @@ func newCacheWithJanitor(de, ci time.Duration, m map[string]Item) *Cache {
 // manually. If the cleanup interval is less than one, expired items are not
 // deleted from the cache before calling c.DeleteExpired().
 func New(defaultExpiration, cleanupInterval time.Duration) *Cache {
-	items := make(map[string]Item)
+	items := make(map[string]*Item)
 	return newCacheWithJanitor(defaultExpiration, cleanupInterval, items)
 }
 
@@ -41,7 +41,7 @@ func New(defaultExpiration, cleanupInterval time.Duration) *Cache {
 // NewFrom() also accepts an items map which will serve as the underlying map
 // for the cache. This is useful for starting from a deserialized cache
 // (serialized using e.g. gob.Encode() on c.Items()), or passing in e.g.
-// make(map[string]Item, 500) to improve startup performance when the cache
+// make(map[string]*Item, 500) to improve startup performance when the cache
 // is expected to reach a certain minimum size.
 //
 // Only the cache's methods synchronize access to this map, so it is not
@@ -53,6 +53,6 @@ func New(defaultExpiration, cleanupInterval time.Duration) *Cache {
 // gob.Register() the individual types stored in the cache before encoding a
 // map retrieved with c.Items(), and to register those same types before
 // decoding a blob containing an items map.
-func NewFrom(defaultExpiration, cleanupInterval time.Duration, items map[string]Item) *Cache {
+func NewFrom(defaultExpiration, cleanupInterval time.Duration, items map[string]*Item) *Cache {
 	return newCacheWithJanitor(defaultExpiration, cleanupInterval, items)
 }
