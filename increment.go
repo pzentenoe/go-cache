@@ -11,97 +11,97 @@ import (
 // possible to increment it by n. To retrieve the incremented value, use one
 // of the specialized methods, e.g. IncrementInt64.
 func (c *Cache) Increment(k string, n int64) error {
-	return c.increment(k, n, func(val any) (any, error) {
+	return c.increment(k, func(val any) (any, error) {
 		switch val := val.(type) {
 		case int:
 			nv := int(n)
 			if (nv > 0 && val > math.MaxInt-nv) || (nv < 0 && val < math.MinInt-nv) {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return val + nv, nil
 		case int8:
 			nv := int8(n)
 			if (nv > 0 && val > math.MaxInt8-nv) || (nv < 0 && val < math.MinInt8-nv) {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return val + nv, nil
 		case int16:
 			nv := int16(n)
 			if (nv > 0 && val > math.MaxInt16-nv) || (nv < 0 && val < math.MinInt16-nv) {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return val + nv, nil
 		case int32:
 			nv := int32(n)
 			if (nv > 0 && val > math.MaxInt32-nv) || (nv < 0 && val < math.MinInt32-nv) {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return val + nv, nil
 		case int64:
 			if (n > 0 && val > math.MaxInt64-n) || (n < 0 && val < math.MinInt64-n) {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return val + n, nil
 		case uint:
 			nv := uint(n)
 			if val > math.MaxUint-nv {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return val + nv, nil
 		case uintptr:
 			nv := uintptr(n)
 			if val > math.MaxUint-uintptr(nv) {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return val + nv, nil
 		case uint8:
 			nv := uint8(n)
 			if val > math.MaxUint8-nv {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return val + nv, nil
 		case uint16:
 			nv := uint16(n)
 			if val > math.MaxUint16-nv {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return val + nv, nil
 		case uint32:
 			nv := uint32(n)
 			if val > math.MaxUint32-nv {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return val + nv, nil
 		case uint64:
 			nv := uint64(n)
 			if val > math.MaxUint64-nv {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return val + nv, nil
 		case float32:
 			result := val + float32(n)
 			if math.IsInf(float64(result), 0) {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return result, nil
 		case float64:
 			result := val + float64(n)
 			if math.IsInf(result, 0) {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return result, nil
 		default:
-			return nil, fmt.Errorf("the value for %s is not an integer or float", k)
+			return nil, fmt.Errorf(errNotIntegerOrFloatFormat, k)
 		}
 	})
 }
 
-func (c *Cache) increment(k string, n any, incrementFunc func(any) (any, error)) error {
+func (c *Cache) increment(k string, incrementFunc func(any) (any, error)) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	v, found := c.items[k]
 	if !found || v.Expired() {
-		return fmt.Errorf("item %s not found", k)
+		return fmt.Errorf(errItemNotFoundFormat, k)
 	}
 	newValue, err := incrementFunc(v.Object)
 	if err != nil {
@@ -117,22 +117,22 @@ func (c *Cache) increment(k string, n any, incrementFunc func(any) (any, error))
 // value. To retrieve the incremented value, use one of the specialized methods,
 // e.g. IncrementFloat64.
 func (c *Cache) IncrementFloat(k string, n float64) error {
-	return c.increment(k, n, func(val any) (any, error) {
+	return c.increment(k, func(val any) (any, error) {
 		switch val := val.(type) {
 		case float32:
 			result := val + float32(n)
 			if math.IsInf(float64(result), 0) {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return result, nil
 		case float64:
 			result := val + n
 			if math.IsInf(result, 0) {
-				return nil, fmt.Errorf("overflow would occur for %s", k)
+				return nil, fmt.Errorf(errOverflowFormat, k)
 			}
 			return result, nil
 		default:
-			return nil, fmt.Errorf("the value for %s does not have type float32 or float64", k)
+			return nil, fmt.Errorf(errNotFloatTypeFormat, k)
 		}
 	})
 }
@@ -285,91 +285,91 @@ func (c *Cache) incrementTyped(k string, n any, zero any) operationResult {
 	defer c.mu.Unlock()
 	v, found := c.items[k]
 	if !found || v.Expired() {
-		return operationResult{zero, fmt.Errorf("item %s not found", k)}
+		return operationResult{zero, fmt.Errorf(errItemNotFoundFormat, k)}
 	}
 	switch val := v.Object.(type) {
 	case int:
 		nv := n.(int)
 		if (nv > 0 && val > math.MaxInt-nv) || (nv < 0 && val < math.MinInt-nv) {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = val + nv
 	case int8:
 		nv := n.(int8)
 		if (nv > 0 && val > math.MaxInt8-nv) || (nv < 0 && val < math.MinInt8-nv) {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = val + nv
 	case int16:
 		nv := n.(int16)
 		if (nv > 0 && val > math.MaxInt16-nv) || (nv < 0 && val < math.MinInt16-nv) {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = val + nv
 	case int32:
 		nv := n.(int32)
 		if (nv > 0 && val > math.MaxInt32-nv) || (nv < 0 && val < math.MinInt32-nv) {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = val + nv
 	case int64:
 		nv := n.(int64)
 		if (nv > 0 && val > math.MaxInt64-nv) || (nv < 0 && val < math.MinInt64-nv) {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = val + nv
 	case uint:
 		nv := n.(uint)
 		if val > math.MaxUint-nv {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = val + nv
 	case uintptr:
 		nv := n.(uintptr)
 		if val > math.MaxUint-uintptr(nv) {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = val + nv
 	case uint8:
 		nv := n.(uint8)
 		if val > math.MaxUint8-nv {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = val + nv
 	case uint16:
 		nv := n.(uint16)
 		if val > math.MaxUint16-nv {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = val + nv
 	case uint32:
 		nv := n.(uint32)
 		if val > math.MaxUint32-nv {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = val + nv
 	case uint64:
 		nv := n.(uint64)
 		if val > math.MaxUint64-nv {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = val + nv
 	case float32:
 		nv := n.(float32)
 		result := val + nv
 		if math.IsInf(float64(result), 0) {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = result
 	case float64:
 		nv := n.(float64)
 		result := val + nv
 		if math.IsInf(result, 0) {
-			return operationResult{zero, fmt.Errorf("overflow would occur for %s", k)}
+			return operationResult{zero, fmt.Errorf(errOverflowFormat, k)}
 		}
 		v.Object = result
 	default:
-		return operationResult{zero, fmt.Errorf("the value for %s is not a supported type", k)}
+		return operationResult{zero, fmt.Errorf(errUnsupportedTypeFormat, k)}
 	}
 	return operationResult{v.Object, nil}
 }

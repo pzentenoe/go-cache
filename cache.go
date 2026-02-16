@@ -70,7 +70,7 @@ func (c *Cache) Add(k string, x any, d time.Duration) error {
 	defer c.mu.Unlock()
 	_, found := c.get(k)
 	if found {
-		return fmt.Errorf("item %s already exists", k)
+		return fmt.Errorf(errItemAlreadyExistsFormat, k)
 	}
 	c.set(k, x, d)
 	return nil
@@ -83,7 +83,7 @@ func (c *Cache) Replace(k string, x any, d time.Duration) error {
 	defer c.mu.Unlock()
 	_, found := c.get(k)
 	if !found {
-		return fmt.Errorf("item %s doesn't exist", k)
+		return fmt.Errorf(errItemDoesNotExistFormat, k)
 	}
 	c.set(k, x, d)
 	return nil

@@ -2,6 +2,7 @@ package cache
 
 import (
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -117,7 +118,7 @@ func (sc *shardedCache) Save(w io.Writer) (err error) {
 	enc := gob.NewEncoder(w)
 	defer func() {
 		if x := recover(); x != nil {
-			err = fmt.Errorf("error registering item types with Gob library")
+			err = errors.New(errGobRegistration)
 		}
 	}()
 

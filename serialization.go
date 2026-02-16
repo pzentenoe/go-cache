@@ -2,7 +2,7 @@ package cache
 
 import (
 	"encoding/gob"
-	"fmt"
+	"errors"
 	"io"
 	"os"
 )
@@ -12,7 +12,7 @@ func (c *Cache) Save(w io.Writer) (err error) {
 	enc := gob.NewEncoder(w)
 	defer func() {
 		if x := recover(); x != nil {
-			err = fmt.Errorf("error registering item types with Gob library")
+			err = errors.New(errGobRegistration)
 		}
 	}()
 	c.mu.RLock()
