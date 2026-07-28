@@ -5,7 +5,22 @@ import (
 	"errors"
 	"io"
 	"os"
+	"reflect"
 )
+
+// registerGobTypes registers each distinct value type with Gob once.
+// Registering the same type twice is a no-op, so deduping by type avoids
+// repeated calls through Gob's global lock when the cache is large.
+func registerGobTypes(items map[string]Item, registered map[reflect.Type]struct{}) {
+	for _, v := range items {
+		t := reflect.TypeOf(v.Object)
+		if _, ok := registered[t]; ok {
+			continue
+		}
+		registered[t] = struct{}{}
+		gob.Register(v.Object)
+	}
+}
 
 // Save Write the cache's items (using Gob) to an io.Writer.
 func (c *Cache) Save(w io.Writer) (err error) {
@@ -17,9 +32,7 @@ func (c *Cache) Save(w io.Writer) (err error) {
 	}()
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	for _, v := range c.items {
-		gob.Register(v.Object)
-	}
+	registerGobTypes(c.items, make(map[reflect.Type]struct{}))
 	err = enc.Encode(&c.items)
 	return
 }

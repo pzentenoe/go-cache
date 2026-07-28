@@ -12,6 +12,7 @@ type janitor struct {
 	interval       time.Duration
 	stop           chan struct{}
 	updateInterval chan time.Duration
+	done           chan struct{} // closed when Run exits
 	cleanup        func()
 	mu             sync.Mutex
 	paused         bool
@@ -22,11 +23,25 @@ func newJanitor(ci time.Duration, cleanup func()) *janitor {
 		interval:       ci,
 		stop:           make(chan struct{}, 1),
 		updateInterval: make(chan time.Duration, 1),
+		done:           make(chan struct{}),
 		cleanup:        cleanup,
 	}
 }
 
+// setInterval applies a new cleanup interval. It never blocks: if the janitor
+// already exited, the update is dropped via the done channel.
+func (j *janitor) setInterval(d time.Duration) {
+	if d <= 0 {
+		return
+	}
+	select {
+	case j.updateInterval <- d:
+	case <-j.done:
+	}
+}
+
 func (j *janitor) Run() {
+	defer close(j.done)
 	ticker := time.NewTicker(j.interval)
 	defer ticker.Stop()
 

@@ -213,14 +213,11 @@ func (c *Cache) ResumeJanitor() {
 // The new interval will take effect immediately. Non-positive intervals are
 // ignored. This method has no effect if the janitor is not running.
 func (c *Cache) SetJanitorInterval(d time.Duration) {
-	if d <= 0 {
-		return
-	}
 	c.mu.RLock()
 	j := c.janitor
 	c.mu.RUnlock()
 	if j != nil {
-		j.updateInterval <- d
+		j.setInterval(d)
 	}
 }
 

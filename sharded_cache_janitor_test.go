@@ -98,3 +98,24 @@ func TestShardedJanitorControlConcurrentWithClose(t *testing.T) {
 	sc.Close()
 	<-done
 }
+
+// TestShardedSetJanitorIntervalConcurrentWithClose is a regression test: an
+// interval update racing Close could block forever once the janitor exited.
+func TestShardedSetJanitorIntervalConcurrentWithClose(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		sc := NewSharded(NoExpiration, time.Millisecond, 2)
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			for j := 0; j < 50; j++ {
+				sc.SetJanitorInterval(time.Duration(j+1) * time.Millisecond)
+			}
+		}()
+		sc.Close()
+		select {
+		case <-done:
+		case <-time.After(5 * time.Second):
+			t.Fatal("SetJanitorInterval blocked after the janitor stopped")
+		}
+	}
+}

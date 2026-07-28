@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 	"time"
 )
 
@@ -119,14 +120,11 @@ func (sc *shardedCache) ResumeJanitor() {
 // SetJanitorInterval dynamically updates the janitor's cleanup interval.
 // Non-positive intervals are ignored.
 func (sc *shardedCache) SetJanitorInterval(d time.Duration) {
-	if d <= 0 {
-		return
-	}
 	sc.mu.Lock()
 	j := sc.janitor
 	sc.mu.Unlock()
 	if j != nil {
-		j.updateInterval <- d
+		j.setInterval(d)
 	}
 }
 
@@ -158,12 +156,11 @@ func (sc *shardedCache) Save(w io.Writer) (err error) {
 		return err
 	}
 
-	// Save each shard's items
+	// Save each shard's items; value types are registered once across shards.
+	registered := make(map[reflect.Type]struct{})
 	for _, c := range sc.cs {
 		c.mu.RLock()
-		for _, v := range c.items {
-			gob.Register(v.Object)
-		}
+		registerGobTypes(c.items, registered)
 		if err := enc.Encode(&c.items); err != nil {
 			c.mu.RUnlock()
 			return err

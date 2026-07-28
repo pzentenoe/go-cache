@@ -246,3 +246,25 @@ func TestJanitorControlConcurrentWithClose(t *testing.T) {
 	c.Close()
 	<-done
 }
+
+// TestSetJanitorIntervalConcurrentWithClose is a regression test: an interval
+// update racing Close could block forever on the buffered update channel once
+// the janitor exited. Updates must resolve via the janitor's done channel.
+func TestSetJanitorIntervalConcurrentWithClose(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		c := New(DefaultExpiration, time.Millisecond)
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			for j := 0; j < 50; j++ {
+				c.SetJanitorInterval(time.Duration(j+1) * time.Millisecond)
+			}
+		}()
+		c.Close()
+		select {
+		case <-done:
+		case <-time.After(5 * time.Second):
+			t.Fatal("SetJanitorInterval blocked after the janitor stopped")
+		}
+	}
+}

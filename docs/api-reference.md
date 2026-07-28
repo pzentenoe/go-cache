@@ -121,6 +121,10 @@ if err != nil {
 
 Gets an item from the cache.
 
+> **Note:** The returned value is the same reference stored in the cache.
+> Mutating a returned map, slice, or pointer mutates the cached value for
+> every other reader. Treat returned values as read-only, or copy them first.
+
 **Parameters:**
 
 - `k`: Key
@@ -290,8 +294,9 @@ c.DecrementFloat("price", 2.50) // 22.49
 
 ### `Items() map[string]Item`
 
-Returns a copy of all unexpired items. The returned map contains value copies,
-so modifications do not affect the cache.
+Returns a copy of all unexpired items. The returned map itself is a copy, so
+adding or removing keys does not affect the cache — but each `Item.Object`
+is still the same reference stored in the cache (see the note on `Get`).
 
 **Returns:** Map of all items in cache
 
