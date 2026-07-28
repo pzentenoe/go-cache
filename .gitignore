@@ -24,3 +24,6 @@ go.work
 
 .idea/
 *.iml
+
+# GoReleaser output
+dist/

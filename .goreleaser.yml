@@ -1,0 +1,28 @@
+version: 2
+
+project_name: go-cache
+
+# Library: no binaries to build, releases are source-only (Go modules).
+builds:
+  - skip: true
+
+changelog:
+  sort: asc
+  groups:
+    - title: Features
+      regexp: '^feat'
+    - title: Bug Fixes
+      regexp: '^fix'
+    - title: Performance
+      regexp: '^perf'
+    - title: Refactoring
+      regexp: '^refactor'
+    - title: Others
+      order: 999
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - '^Merge '
