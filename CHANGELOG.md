@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-07-28
+
+### Added
+
+- **Sentinel errors for `errors.Is`**: New exported `ErrNotFound`, `ErrAlreadyExists`, `ErrOverflow`, `ErrUnderflow`, and `ErrTypeMismatch` are wrapped by all error returns, so callers can use `errors.Is(err, cache.ErrNotFound)` instead of matching message text. Error messages remain byte-for-byte identical to previous versions
+- **Benchmark suite**: Hot-path benchmarks for `Cache` and `ShardedCache` (Get/Set/Increment, single-threaded and concurrent), all reporting zero allocations
+- **Fuzz tests**: `FuzzCacheLoad` and `FuzzShardedCacheLoad` verify that deserializing arbitrary or corrupted data never panics
+
+### Fixed
+
+- **Process crash via `SetJanitorInterval`**: A non-positive interval panicked inside the janitor goroutine (`time.NewTicker`), crashing the entire process. Non-positive intervals are now ignored
+- **Eviction callback race**: `Delete`/`DeleteExpired` re-read `onEvicted` outside the lock, so a concurrent `OnEvicted(nil)` could trigger a nil-function call panic. The callback is now captured while synchronized
+- **Type assertion panics in typed operations**: Calling e.g. `IncrementInt64` on a key holding an `int32` panicked on a failed type assertion. Typed `Increment*`/`Decrement*` now return an `ErrTypeMismatch` error instead
+- **Janitor lifecycle races**: All `janitor` field access is now mutex-guarded; `Close()` is idempotent, removes the GC finalizer, and can no longer deadlock or panic when called twice or concurrently with `PauseJanitor`/`ResumeJanitor`/`SetJanitorInterval`
+- **`SetJanitorInterval` blocking window**: An interval update racing `Close()` could block forever on the buffered update channel after the janitor exited. Updates now resolve via a done channel
+- **`NewSharded` with `shards <= 0`**: Failed late with a modulo-by-zero panic on the first cache operation; now fails fast at construction with a clear message
+
+### Refactored
+
+- **Single janitor implementation**: The duplicated `janitor`/`shardedJanitor` types merged into one `janitor` driven by a cleanup function
+- **Generic numeric operations**: The four 13-case increment/decrement switches were replaced by generic helpers in `numeric.go` (`mutateTyped` skeleton + signed/unsigned/float ops with exact-equivalent overflow checks). The 26 public typed methods keep their exact signatures — public API is fully compatible. Net −485 lines
+- **Removed dead code**: No-op branch in `newCache`, the `operationResult` type, and two unused error constants
+
+### Performance
+
+- **Faster `Save`**: Value types are registered with Gob once per distinct type instead of once per item
+- **`ShardedCache.Items()`** pre-sizes its result map
+- **Measured benchmarks** (Apple M4 Pro): Get ~7 ns/op, Set ~13 ns/op, Increment ~26 ns/op, all zero-alloc. Under concurrency the sharded cache runs increments ~3.7x faster and reads ~10x faster than the single-lock cache
+
+### Documentation
+
+- README Performance section replaced with real measured benchmark tables and reproduction instructions
+- Documented that `Get`/`Items` return shared references to cached values (mutating a returned map/slice mutates the cache)
+- `SetJanitorInterval` documents that non-positive intervals are ignored; `Close` documents idempotency
+
+### Tests
+
+- **13 regression tests** for the fixed panics and races, all exercised under `-race`
+- Coverage-gap tests for nil-janitor sharded controls, shard-count mismatch on `Load`, `SaveFile` errors, and the `Save` Gob-panic recover path
+- **408 tests total, 97% statement coverage**, race detector and `golangci-lint` clean
+
 ## [1.3.0] - 2026-02-16
 
 ### Changes

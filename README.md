@@ -154,7 +154,7 @@ c.Close()
 
 ## Recent Updates
 
-The latest release adds overflow protection, janitor control, and complete ShardedCache API parity. See [CHANGELOG.md](CHANGELOG.md) for full version history and release notes.
+The latest release (v1.4.0) adds sentinel errors for `errors.Is`, fixes several panic and race conditions in janitor lifecycle and typed operations, and deduplicates internals with generics — with full backward compatibility. See [CHANGELOG.md](CHANGELOG.md) for full version history and release notes.
 
 ## Performance
 
