@@ -39,7 +39,7 @@ type shardedCache struct {
 	m       uint32
 	cs      []*Cache
 	mu      sync.Mutex // guards janitor
-	janitor *shardedJanitor
+	janitor *janitor
 }
 
 type unexportedShardedCache struct {

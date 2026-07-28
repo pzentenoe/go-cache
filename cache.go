@@ -147,11 +147,6 @@ func (c *Cache) delete(k string) (any, func(string, any), bool) {
 	return nil, nil, false
 }
 
-type operationResult struct {
-	value any
-	err   error
-}
-
 type keyAndValue struct {
 	key   string
 	value any

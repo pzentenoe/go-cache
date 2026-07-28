@@ -6,18 +6,28 @@ import (
 	"time"
 )
 
+// janitor periodically deletes expired items. A single implementation serves
+// both Cache and shardedCache via the cleanup function.
 type janitor struct {
 	interval       time.Duration
 	stop           chan struct{}
 	updateInterval chan time.Duration
+	cleanup        func()
 	mu             sync.Mutex
 	paused         bool
 }
 
-func (j *janitor) Run(c *Cache) {
-	j.mu.Lock()
+func newJanitor(ci time.Duration, cleanup func()) *janitor {
+	return &janitor{
+		interval:       ci,
+		stop:           make(chan struct{}, 1),
+		updateInterval: make(chan time.Duration, 1),
+		cleanup:        cleanup,
+	}
+}
+
+func (j *janitor) Run() {
 	ticker := time.NewTicker(j.interval)
-	j.mu.Unlock()
 	defer ticker.Stop()
 
 	for {
@@ -27,7 +37,7 @@ func (j *janitor) Run(c *Cache) {
 			paused := j.paused
 			j.mu.Unlock()
 			if !paused {
-				c.DeleteExpired()
+				j.cleanup()
 			}
 		case newInterval := <-j.updateInterval:
 			ticker.Stop()
@@ -67,14 +77,10 @@ func stopJanitor(c *Cache) {
 }
 
 func runJanitor(c *Cache, ci time.Duration) {
-	j := &janitor{
-		interval:       ci,
-		stop:           make(chan struct{}, 1),
-		updateInterval: make(chan time.Duration, 1),
-	}
+	j := newJanitor(ci, c.DeleteExpired)
 	c.mu.Lock()
 	c.janitor = j
 	c.mu.Unlock()
-	go j.Run(c)
+	go j.Run()
 	runtime.SetFinalizer(c, stopJanitor)
 }
