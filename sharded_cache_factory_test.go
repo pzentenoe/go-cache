@@ -17,3 +17,12 @@ func TestNewShardedCache(t *testing.T) {
 		assert.NotNil(t, sc.cs[1])
 	})
 }
+
+// TestNewShardedInvalidShards is a regression test: shards <= 0 used to panic
+// later with a modulo-by-zero on the first cache operation. It must fail fast
+// at construction instead.
+func TestNewShardedInvalidShards(t *testing.T) {
+	assert.Panics(t, func() { NewSharded(NoExpiration, 0, 0) })
+	assert.Panics(t, func() { NewSharded(NoExpiration, 0, -1) })
+	assert.NotPanics(t, func() { NewSharded(NoExpiration, 0, 1) })
+}

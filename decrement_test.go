@@ -1041,3 +1041,33 @@ func TestCache_DecrementTyped_Underflow(t *testing.T) {
 		}
 	})
 }
+
+// TestDecrementTypeMismatch is a regression test: typed decrement methods
+// asserted n to the stored value's type, panicking on mismatch. They must
+// return an error instead.
+func TestDecrementTypeMismatch(t *testing.T) {
+	t.Run("DecrementInt64 on int32 value", func(t *testing.T) {
+		c := New(NoExpiration, 0)
+		c.Set("key", int32(5), NoExpiration)
+		if _, err := c.DecrementInt64("key", 1); err == nil {
+			t.Fatal("Expected type mismatch error, got nil")
+		}
+
+		val, found := c.Get("key")
+		if !found || val != int32(5) {
+			t.Errorf("value must be unchanged on type mismatch, got %v (found=%v)", val, found)
+		}
+	})
+
+	t.Run("Matching type still works", func(t *testing.T) {
+		c := New(NoExpiration, 0)
+		c.Set("key", int32(5), NoExpiration)
+		v, err := c.DecrementInt32("key", 2)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+		if v != int32(3) {
+			t.Errorf("Expected 3, got %v", v)
+		}
+	})
+}

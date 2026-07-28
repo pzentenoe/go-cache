@@ -2,6 +2,7 @@ package cache
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -124,23 +125,26 @@ func (c *Cache) get(k string) (any, bool) {
 // Delete an item from the cache. Does nothing if the key is not in the cache.
 func (c *Cache) Delete(k string) {
 	c.mu.Lock()
-	v, evicted := c.delete(k)
+	v, onEvicted, evicted := c.delete(k)
 	c.mu.Unlock()
 	if evicted {
-		c.onEvicted(k, v)
+		onEvicted(k, v)
 	}
 }
 
-func (c *Cache) delete(k string) (any, bool) {
+// delete removes the key and captures the eviction callback, both while
+// synchronized, so the callback can be safely invoked after the lock is
+// released even if OnEvicted(nil) runs concurrently.
+func (c *Cache) delete(k string) (any, func(string, any), bool) {
 	v, found := c.items[k]
 	if !found {
-		return nil, false
+		return nil, nil, false
 	}
 	delete(c.items, k)
 	if c.onEvicted != nil {
-		return v.Object, true
+		return v.Object, c.onEvicted, true
 	}
-	return nil, false
+	return nil, nil, false
 }
 
 type operationResult struct {
@@ -157,17 +161,18 @@ type keyAndValue struct {
 func (c *Cache) DeleteExpired() {
 	var evictedItems []keyAndValue
 	c.mu.Lock()
+	onEvicted := c.onEvicted
 	for k, v := range c.items {
 		if v.Expired() {
-			ov, evicted := c.delete(k)
-			if evicted {
-				evictedItems = append(evictedItems, keyAndValue{k, ov})
+			delete(c.items, k)
+			if onEvicted != nil {
+				evictedItems = append(evictedItems, keyAndValue{k, v.Object})
 			}
 		}
 	}
 	c.mu.Unlock()
 	for _, v := range evictedItems {
-		c.onEvicted(v.key, v.value)
+		onEvicted(v.key, v.value)
 	}
 }
 
@@ -191,34 +196,52 @@ func (c *Cache) Flush() {
 // The janitor will stop deleting expired items until ResumeJanitor is called.
 // Safe to call multiple times. This method has no effect if the janitor is not running.
 func (c *Cache) PauseJanitor() {
-	if c.janitor != nil {
-		c.janitor.Pause()
+	c.mu.RLock()
+	j := c.janitor
+	c.mu.RUnlock()
+	if j != nil {
+		j.Pause()
 	}
 }
 
 // ResumeJanitor resumes the automatic cleanup of expired items after it was paused.
 // Safe to call multiple times. This method has no effect if the janitor is not running or not paused.
 func (c *Cache) ResumeJanitor() {
-	if c.janitor != nil {
-		c.janitor.Resume()
+	c.mu.RLock()
+	j := c.janitor
+	c.mu.RUnlock()
+	if j != nil {
+		j.Resume()
 	}
 }
 
 // SetJanitorInterval dynamically updates the janitor's cleanup interval.
-// The new interval will take effect immediately. This method has no effect
-// if the janitor is not running.
+// The new interval will take effect immediately. Non-positive intervals are
+// ignored. This method has no effect if the janitor is not running.
 func (c *Cache) SetJanitorInterval(d time.Duration) {
-	if c.janitor != nil {
-		c.janitor.updateInterval <- d
+	if d <= 0 {
+		return
+	}
+	c.mu.RLock()
+	j := c.janitor
+	c.mu.RUnlock()
+	if j != nil {
+		j.updateInterval <- d
 	}
 }
 
 // Close stops the janitor goroutine and releases resources.
 // After calling Close, the cache can still be used but expired items
-// will no longer be cleaned up automatically.
+// will no longer be cleaned up automatically. Safe to call multiple times.
 func (c *Cache) Close() {
-	if c.janitor != nil {
-		c.janitor.stop <- struct{}{}
-		c.janitor = nil
+	c.mu.Lock()
+	j := c.janitor
+	c.janitor = nil
+	c.mu.Unlock()
+	if j != nil {
+		// Remove the GC finalizer: the janitor is already stopped, and
+		// stopJanitor would dereference the nil'ed janitor field.
+		runtime.SetFinalizer(c, nil)
+		j.stop <- struct{}{}
 	}
 }

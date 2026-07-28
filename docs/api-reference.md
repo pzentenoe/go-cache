@@ -369,6 +369,7 @@ Safe to call multiple times; subsequent calls are no-ops.
 ### `SetJanitorInterval(d time.Duration)`
 
 Dynamically changes the cleanup interval.
+Non-positive intervals are ignored.
 
 **Parameters:**
 
@@ -384,6 +385,7 @@ c.SetJanitorInterval(5 * time.Minute)
 
 Stops the janitor goroutine and releases resources. After calling Close, the cache
 can still be used but expired items will no longer be cleaned up automatically.
+Safe to call multiple times.
 
 **Example:**
 

@@ -96,33 +96,49 @@ func (sc *shardedCache) Flush() {
 // PauseJanitor temporarily pauses the automatic cleanup of expired items.
 // Safe to call multiple times; subsequent calls are no-ops.
 func (sc *shardedCache) PauseJanitor() {
-	if sc.janitor != nil {
-		sc.janitor.Pause()
+	sc.mu.Lock()
+	j := sc.janitor
+	sc.mu.Unlock()
+	if j != nil {
+		j.Pause()
 	}
 }
 
 // ResumeJanitor resumes the automatic cleanup of expired items after it was paused.
 // Safe to call multiple times; subsequent calls are no-ops.
 func (sc *shardedCache) ResumeJanitor() {
-	if sc.janitor != nil {
-		sc.janitor.Resume()
+	sc.mu.Lock()
+	j := sc.janitor
+	sc.mu.Unlock()
+	if j != nil {
+		j.Resume()
 	}
 }
 
 // SetJanitorInterval dynamically updates the janitor's cleanup interval.
+// Non-positive intervals are ignored.
 func (sc *shardedCache) SetJanitorInterval(d time.Duration) {
-	if sc.janitor != nil {
-		sc.janitor.updateInterval <- d
+	if d <= 0 {
+		return
+	}
+	sc.mu.Lock()
+	j := sc.janitor
+	sc.mu.Unlock()
+	if j != nil {
+		j.updateInterval <- d
 	}
 }
 
 // Close stops the janitor goroutine and releases resources.
 // After calling Close, the cache can still be used but expired items
-// will no longer be cleaned up automatically.
+// will no longer be cleaned up automatically. Safe to call multiple times.
 func (sc *shardedCache) Close() {
-	if sc.janitor != nil {
-		sc.janitor.stop <- struct{}{}
-		sc.janitor = nil
+	sc.mu.Lock()
+	j := sc.janitor
+	sc.janitor = nil
+	sc.mu.Unlock()
+	if j != nil {
+		j.stop <- struct{}{}
 	}
 }
 

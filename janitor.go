@@ -58,7 +58,12 @@ func (j *janitor) Resume() {
 }
 
 func stopJanitor(c *Cache) {
-	c.janitor.stop <- struct{}{}
+	c.mu.RLock()
+	j := c.janitor
+	c.mu.RUnlock()
+	if j != nil {
+		j.stop <- struct{}{}
+	}
 }
 
 func runJanitor(c *Cache, ci time.Duration) {
@@ -67,7 +72,9 @@ func runJanitor(c *Cache, ci time.Duration) {
 		stop:           make(chan struct{}, 1),
 		updateInterval: make(chan time.Duration, 1),
 	}
+	c.mu.Lock()
 	c.janitor = j
+	c.mu.Unlock()
 	go j.Run(c)
 	runtime.SetFinalizer(c, stopJanitor)
 }

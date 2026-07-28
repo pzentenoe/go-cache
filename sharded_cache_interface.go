@@ -2,6 +2,7 @@ package cache
 
 import (
 	"io"
+	"sync"
 	"time"
 )
 
@@ -37,6 +38,7 @@ type shardedCache struct {
 	seed    uint32
 	m       uint32
 	cs      []*Cache
+	mu      sync.Mutex // guards janitor
 	janitor *shardedJanitor
 }
 

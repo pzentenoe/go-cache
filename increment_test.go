@@ -588,3 +588,34 @@ func TestCache_IncrementTyped_Overflow(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+// TestIncrementTypeMismatch is a regression test: typed increment methods
+// asserted n to the stored value's type, panicking on mismatch (e.g.
+// IncrementInt64 on an int32 value). They must return an error instead.
+func TestIncrementTypeMismatch(t *testing.T) {
+	t.Run("IncrementInt64 on int32 value", func(t *testing.T) {
+		c := New(NoExpiration, 0)
+		c.Set("key", int32(5), NoExpiration)
+		_, err := c.IncrementInt64("key", 1)
+		assert.Error(t, err)
+
+		val, found := c.Get("key")
+		assert.True(t, found)
+		assert.Equal(t, int32(5), val, "value must be unchanged on type mismatch")
+	})
+
+	t.Run("IncrementInt on string value", func(t *testing.T) {
+		c := New(NoExpiration, 0)
+		c.Set("key", "not-a-number", NoExpiration)
+		_, err := c.IncrementInt("key", 1)
+		assert.Error(t, err)
+	})
+
+	t.Run("Matching type still works", func(t *testing.T) {
+		c := New(NoExpiration, 0)
+		c.Set("key", int32(5), NoExpiration)
+		v, err := c.IncrementInt32("key", 2)
+		assert.NoError(t, err)
+		assert.Equal(t, int32(7), v)
+	})
+}

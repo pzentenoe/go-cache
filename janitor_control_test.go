@@ -192,3 +192,57 @@ func TestJanitorIntervalPersistence(t *testing.T) {
 		assert.Equal(t, newInterval, c.janitor.interval)
 	})
 }
+
+// TestSetJanitorIntervalNonPositive is a regression test: a non-positive
+// interval made the janitor goroutine panic in time.NewTicker, crashing the
+// whole process. Non-positive intervals must be ignored.
+func TestSetJanitorIntervalNonPositive(t *testing.T) {
+	c := New(DefaultExpiration, 50*time.Millisecond)
+	defer c.Close()
+
+	assert.NotPanics(t, func() {
+		c.SetJanitorInterval(0)
+		c.SetJanitorInterval(-time.Second)
+	})
+	assert.Equal(t, 50*time.Millisecond, c.janitor.interval, "interval must be unchanged")
+}
+
+// TestCloseIdempotent verifies Close can be called multiple times and that
+// janitor controls become no-ops afterwards.
+func TestCloseIdempotent(t *testing.T) {
+	c := New(DefaultExpiration, 10*time.Millisecond)
+	assert.NotPanics(t, func() {
+		c.Close()
+		c.Close()
+	})
+	assert.NotPanics(t, func() {
+		c.PauseJanitor()
+		c.ResumeJanitor()
+		c.SetJanitorInterval(time.Second)
+	})
+}
+
+// TestStopJanitorAfterClose is a regression test: the GC finalizer calls
+// stopJanitor, which dereferenced the janitor field nil'ed by Close, crashing
+// the process. It must be a no-op instead.
+func TestStopJanitorAfterClose(t *testing.T) {
+	c := New(DefaultExpiration, time.Millisecond)
+	c.Close()
+	assert.NotPanics(t, func() { stopJanitor(c) })
+}
+
+// TestJanitorControlConcurrentWithClose exercises the janitor field
+// synchronization under -race: controls racing with Close must not panic.
+func TestJanitorControlConcurrentWithClose(t *testing.T) {
+	c := New(DefaultExpiration, 10*time.Millisecond)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for i := 0; i < 100; i++ {
+			c.PauseJanitor()
+			c.ResumeJanitor()
+		}
+	}()
+	c.Close()
+	<-done
+}

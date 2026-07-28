@@ -50,6 +50,9 @@ func NewSharded(defaultExpiration, cleanupInterval time.Duration, shards int) Sh
 }
 
 func unexportedNewSharded(defaultExpiration, cleanupInterval time.Duration, shards int) *unexportedShardedCache {
+	if shards <= 0 {
+		panic("go-cache: NewSharded requires shards > 0")
+	}
 	if defaultExpiration == 0 {
 		defaultExpiration = NoExpiration
 	}

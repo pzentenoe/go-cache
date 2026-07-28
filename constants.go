@@ -11,4 +11,5 @@ const (
 	errItemDoesNotExistFormat  = "item %s doesn't exist"
 	errNotIntegerFormat        = "the value for %s is not an integer"
 	errNotIntegerOrFloatFormat = "the value for %s is not an integer or float"
+	errTypeMismatchFormat      = "the value for %s does not match the type expected by this operation"
 )

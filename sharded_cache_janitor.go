@@ -57,7 +57,12 @@ func (j *shardedJanitor) Resume() {
 }
 
 func stopShardedJanitor(sc *unexportedShardedCache) {
-	sc.janitor.stop <- struct{}{}
+	sc.mu.Lock()
+	j := sc.janitor
+	sc.mu.Unlock()
+	if j != nil {
+		j.stop <- struct{}{}
+	}
 }
 
 func runShardedJanitor(sc *shardedCache, ci time.Duration) {
@@ -66,6 +71,8 @@ func runShardedJanitor(sc *shardedCache, ci time.Duration) {
 		stop:           make(chan struct{}, 1),
 		updateInterval: make(chan time.Duration, 1),
 	}
+	sc.mu.Lock()
 	sc.janitor = j
+	sc.mu.Unlock()
 	go j.Run(sc)
 }

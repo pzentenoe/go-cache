@@ -3,6 +3,7 @@ package cache
 import (
 	"fmt"
 	"math"
+	"reflect"
 )
 
 // Decrement an item of type int, int8, int16, int32, int64, uintptr, uint,
@@ -287,6 +288,12 @@ func (c *Cache) decrementTyped(k string, n any, zero any) operationResult {
 	v, found := c.items[k]
 	if !found || v.Expired() {
 		return operationResult{zero, fmt.Errorf(errItemNotFoundFormat, k)}
+	}
+	// Reject mismatched n types up front: the switch below asserts n to the
+	// stored value's type, which would panic on mismatch (e.g. DecrementInt64
+	// on an int32 value).
+	if reflect.TypeOf(v.Object) != reflect.TypeOf(n) {
+		return operationResult{zero, fmt.Errorf(errTypeMismatchFormat, k)}
 	}
 	switch val := v.Object.(type) {
 	case int:

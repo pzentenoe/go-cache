@@ -280,3 +280,42 @@ func TestCache_Flush(t *testing.T) {
 		}
 	})
 }
+
+// TestDeleteOnEvictedClearedConcurrently is a regression test: Delete re-read
+// c.onEvicted outside the lock, so a concurrent OnEvicted(nil) could cause a
+// nil-function call panic (detected with -race).
+func TestDeleteOnEvictedClearedConcurrently(t *testing.T) {
+	c := New(NoExpiration, 0)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for i := 0; i < 1000; i++ {
+			c.OnEvicted(nil)
+			c.OnEvicted(func(string, any) {})
+		}
+	}()
+	for i := 0; i < 1000; i++ {
+		c.Set("key", "value", NoExpiration)
+		c.Delete("key")
+	}
+	<-done
+}
+
+// TestDeleteExpiredOnEvictedClearedConcurrently is the DeleteExpired variant
+// of the onEvicted race regression test.
+func TestDeleteExpiredOnEvictedClearedConcurrently(t *testing.T) {
+	c := New(NoExpiration, 0)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for i := 0; i < 500; i++ {
+			c.OnEvicted(nil)
+			c.OnEvicted(func(string, any) {})
+		}
+	}()
+	for i := 0; i < 500; i++ {
+		c.Set("key", "value", 1) // 1ns: expires immediately
+		c.DeleteExpired()
+	}
+	<-done
+}

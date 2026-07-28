@@ -46,3 +46,55 @@ func TestShardedJanitor(t *testing.T) {
 		assert.Equal(t, 1, sc.ItemCount())
 	})
 }
+
+// TestShardedCloseIdempotent verifies Close can be called multiple times and
+// that janitor controls become no-ops afterwards.
+func TestShardedCloseIdempotent(t *testing.T) {
+	sc := NewSharded(NoExpiration, 10*time.Millisecond, 2)
+	assert.NotPanics(t, func() {
+		sc.Close()
+		sc.Close()
+	})
+	assert.NotPanics(t, func() {
+		sc.PauseJanitor()
+		sc.ResumeJanitor()
+		sc.SetJanitorInterval(time.Second)
+	})
+}
+
+// TestShardedSetJanitorIntervalNonPositive is a regression test: a
+// non-positive interval panicked the janitor goroutine via time.NewTicker.
+// Non-positive intervals must be ignored.
+func TestShardedSetJanitorIntervalNonPositive(t *testing.T) {
+	sc := NewSharded(NoExpiration, 50*time.Millisecond, 2)
+	defer sc.Close()
+	assert.NotPanics(t, func() {
+		sc.SetJanitorInterval(0)
+		sc.SetJanitorInterval(-time.Second)
+	})
+}
+
+// TestStopShardedJanitorAfterClose is a regression test: the GC finalizer
+// calls stopShardedJanitor, which dereferenced the janitor field nil'ed by
+// Close. It must be a no-op instead.
+func TestStopShardedJanitorAfterClose(t *testing.T) {
+	sc := NewSharded(NoExpiration, time.Millisecond, 2).(*unexportedShardedCache)
+	sc.Close()
+	assert.NotPanics(t, func() { stopShardedJanitor(sc) })
+}
+
+// TestShardedJanitorControlConcurrentWithClose exercises the janitor field
+// synchronization under -race: controls racing with Close must not panic.
+func TestShardedJanitorControlConcurrentWithClose(t *testing.T) {
+	sc := NewSharded(NoExpiration, 10*time.Millisecond, 2)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for i := 0; i < 100; i++ {
+			sc.PauseJanitor()
+			sc.ResumeJanitor()
+		}
+	}()
+	sc.Close()
+	<-done
+}
