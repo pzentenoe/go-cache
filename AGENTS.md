@@ -54,6 +54,10 @@ make test
 
 CI uses Go 1.25, runs tests with atomic coverage excluding `examples/`, and runs `golangci-lint run ./...`.
 
+## Releases
+
+Releases are automated with GoReleaser (`.goreleaser.yml`, library mode: no binaries). To cut a release: update `CHANGELOG.md` (Keep a Changelog style), commit, then push a lightweight tag — `git tag vX.Y.Z && git push origin vX.Y.Z`. The `release` workflow runs the race test suite as a gate and publishes the GitHub Release with a changelog grouped by conventional-commit type. Never move or delete a published tag: Go module proxies cache them immutably.
+
 ## Conventions
 
 - Keep production Go files in package `cache`; tests currently use the same package and Testify assertions.
