@@ -64,7 +64,8 @@ func (sc *shardedCache) DeleteExpired() {
 }
 
 func (sc *shardedCache) Items() map[string]Item {
-	res := make(map[string]Item)
+	// ItemCount is an upper bound: it includes expired items not yet cleaned up.
+	res := make(map[string]Item, sc.ItemCount())
 	for _, v := range sc.cs {
 		for k, item := range v.Items() {
 			res[k] = item

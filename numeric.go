@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -62,11 +61,11 @@ func mutateTyped[T any](c *Cache, k string, n T, op func(k string, v, n T) (T, e
 	var zero T
 	v, found := c.items[k]
 	if !found || v.Expired() {
-		return zero, fmt.Errorf(errItemNotFoundFormat, k)
+		return zero, keyErrorf(ErrNotFound, errItemNotFoundFormat, k)
 	}
 	val, ok := v.Object.(T)
 	if !ok {
-		return zero, fmt.Errorf(errTypeMismatchFormat, k)
+		return zero, keyErrorf(ErrTypeMismatch, errTypeMismatchFormat, k)
 	}
 	nv, err := op(k, val, n)
 	if err != nil {
@@ -87,7 +86,7 @@ func incrementSigned[T signed](k string, v, n T) (T, error) {
 	min, max := signedBounds[T]()
 	v64, n64 := int64(v), int64(n)
 	if (n64 > 0 && v64 > max-n64) || (n64 < 0 && v64 < min-n64) {
-		return v, fmt.Errorf(errOverflowFormat, k)
+		return v, keyErrorf(ErrOverflow, errOverflowFormat, k)
 	}
 	return T(v64 + n64), nil
 }
@@ -96,7 +95,7 @@ func decrementSigned[T signed](k string, v, n T) (T, error) {
 	min, max := signedBounds[T]()
 	v64, n64 := int64(v), int64(n)
 	if (n64 > 0 && v64 < min+n64) || (n64 < 0 && v64 > max+n64) {
-		return v, fmt.Errorf(errUnderflowFormat, k)
+		return v, keyErrorf(ErrUnderflow, errUnderflowFormat, k)
 	}
 	return T(v64 - n64), nil
 }
@@ -105,7 +104,7 @@ func incrementUnsigned[T unsigned](k string, v, n T) (T, error) {
 	max := unsignedMax[T]()
 	v64, n64 := uint64(v), uint64(n)
 	if v64 > max-n64 {
-		return v, fmt.Errorf(errOverflowFormat, k)
+		return v, keyErrorf(ErrOverflow, errOverflowFormat, k)
 	}
 	return T(v64 + n64), nil
 }
@@ -113,7 +112,7 @@ func incrementUnsigned[T unsigned](k string, v, n T) (T, error) {
 func decrementUnsigned[T unsigned](k string, v, n T) (T, error) {
 	v64, n64 := uint64(v), uint64(n)
 	if v64 < n64 {
-		return v, fmt.Errorf(errUnderflowFormat, k)
+		return v, keyErrorf(ErrUnderflow, errUnderflowFormat, k)
 	}
 	return T(v64 - n64), nil
 }
@@ -121,7 +120,7 @@ func decrementUnsigned[T unsigned](k string, v, n T) (T, error) {
 func incrementFloat[T floats](k string, v, n T) (T, error) {
 	sum := v + n
 	if math.IsInf(float64(sum), 0) {
-		return v, fmt.Errorf(errOverflowFormat, k)
+		return v, keyErrorf(ErrOverflow, errOverflowFormat, k)
 	}
 	return sum, nil
 }
@@ -129,7 +128,7 @@ func incrementFloat[T floats](k string, v, n T) (T, error) {
 func decrementFloat[T floats](k string, v, n T) (T, error) {
 	diff := v - n
 	if math.IsInf(float64(diff), 0) {
-		return v, fmt.Errorf(errUnderflowFormat, k)
+		return v, keyErrorf(ErrUnderflow, errUnderflowFormat, k)
 	}
 	return diff, nil
 }

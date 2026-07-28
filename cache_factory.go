@@ -5,9 +5,7 @@ import (
 )
 
 func newCache(de time.Duration, m map[string]Item) *Cache {
-	if de == 0 {
-		de = DefaultExpiration
-	}
+	// de == 0 already is DefaultExpiration.
 	return &Cache{
 		defaultExpiration: de,
 		items:             m,

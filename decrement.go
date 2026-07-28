@@ -1,8 +1,6 @@
 package cache
 
-import (
-	"fmt"
-)
+import ()
 
 // Decrement an item of type int, int8, int16, int32, int64, uintptr, uint,
 // uint8, uint32, or uint64, float32 or float64 by n. Returns an error if the
@@ -39,7 +37,7 @@ func (c *Cache) Decrement(k string, n int64) error {
 		case float64:
 			return decrementFloat[float64](k, val, float64(n))
 		default:
-			return nil, fmt.Errorf(errNotIntegerOrFloatFormat, k)
+			return nil, keyErrorf(ErrTypeMismatch, errNotIntegerOrFloatFormat, k)
 		}
 	})
 }
@@ -49,7 +47,7 @@ func (c *Cache) decrement(k string, decrementFunc func(any) (any, error)) error 
 	defer c.mu.Unlock()
 	v, found := c.items[k]
 	if !found || v.Expired() {
-		return fmt.Errorf(errItemNotFoundFormat, k)
+		return keyErrorf(ErrNotFound, errItemNotFoundFormat, k)
 	}
 	newValue, err := decrementFunc(v.Object)
 	if err != nil {
@@ -73,7 +71,7 @@ func (c *Cache) DecrementFloat(k string, n float64) error {
 		case float64:
 			return decrementFloat[float64](k, val, n)
 		default:
-			return nil, fmt.Errorf(errNotFloatTypeFormat, k)
+			return nil, keyErrorf(ErrTypeMismatch, errNotFloatTypeFormat, k)
 		}
 	})
 }

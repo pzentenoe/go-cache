@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"fmt"
 	"runtime"
 	"sync"
 	"time"
@@ -62,7 +61,7 @@ func (c *Cache) Add(k string, x any, d time.Duration) error {
 	defer c.mu.Unlock()
 	_, found := c.get(k)
 	if found {
-		return fmt.Errorf(errItemAlreadyExistsFormat, k)
+		return keyErrorf(ErrAlreadyExists, errItemAlreadyExistsFormat, k)
 	}
 	c.set(k, x, d)
 	return nil
@@ -75,7 +74,7 @@ func (c *Cache) Replace(k string, x any, d time.Duration) error {
 	defer c.mu.Unlock()
 	_, found := c.get(k)
 	if !found {
-		return fmt.Errorf(errItemDoesNotExistFormat, k)
+		return keyErrorf(ErrNotFound, errItemDoesNotExistFormat, k)
 	}
 	c.set(k, x, d)
 	return nil
