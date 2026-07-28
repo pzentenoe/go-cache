@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"bytes"
 	"os"
 	"testing"
 	"time"
@@ -317,4 +318,37 @@ func TestShardedCache_SaveLoad(t *testing.T) {
 		err := sc.LoadFile("nonexistent_file.gob")
 		assert.Error(t, err)
 	})
+}
+
+// TestShardedCache_JanitorControlWithoutJanitor covers the nil-janitor paths:
+// controls on a sharded cache created without cleanup interval are no-ops.
+func TestShardedCache_JanitorControlWithoutJanitor(t *testing.T) {
+	sc := NewSharded(NoExpiration, 0, 2)
+	assert.NotPanics(t, func() {
+		sc.PauseJanitor()
+		sc.ResumeJanitor()
+		sc.SetJanitorInterval(time.Second)
+		sc.Close()
+	})
+}
+
+// TestShardedCache_LoadShardMismatch verifies loading data saved with a
+// different shard count fails instead of silently misplacing items.
+func TestShardedCache_LoadShardMismatch(t *testing.T) {
+	var buf bytes.Buffer
+	saved := newShardedCache(2, NoExpiration)
+	saved.Set("key", "value", NoExpiration)
+	assert.NoError(t, saved.Save(&buf))
+
+	loaded := newShardedCache(4, NoExpiration)
+	err := loaded.Load(&buf)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "shard count mismatch")
+}
+
+// TestShardedCache_SaveFileError covers the file creation error path.
+func TestShardedCache_SaveFileError(t *testing.T) {
+	sc := newShardedCache(2, NoExpiration)
+	err := sc.SaveFile("/invalid/path/to/file.gob")
+	assert.Error(t, err)
 }

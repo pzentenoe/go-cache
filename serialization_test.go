@@ -176,3 +176,50 @@ func TestCache_LoadFile(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+// TestCache_SaveGobPanic covers the recover path: gob.Register panics on
+// unregisterable value types (e.g. funcs) and Save must surface it as an
+// error instead of crashing.
+func TestCache_SaveGobPanic(t *testing.T) {
+	c := New(NoExpiration, 0)
+	c.Set("fn", func() {}, NoExpiration)
+
+	var buf bytes.Buffer
+	err := c.Save(&buf)
+	assert.Error(t, err)
+}
+
+// FuzzCacheLoad feeds arbitrary data into Load: it must return an error or
+// succeed, but never panic. Run with: go test -fuzz=FuzzCacheLoad -fuzztime=30s
+func FuzzCacheLoad(f *testing.F) {
+	c := New(NoExpiration, 0)
+	c.Set("key", "value", NoExpiration)
+	var buf bytes.Buffer
+	if err := c.Save(&buf); err != nil {
+		f.Fatal(err)
+	}
+	f.Add(buf.Bytes())
+	f.Add([]byte{})
+	f.Add([]byte("not a gob stream"))
+	f.Fuzz(func(t *testing.T, data []byte) {
+		c := New(NoExpiration, 0)
+		_ = c.Load(bytes.NewReader(data))
+	})
+}
+
+// FuzzShardedCacheLoad is the sharded counterpart of FuzzCacheLoad.
+func FuzzShardedCacheLoad(f *testing.F) {
+	sc := newShardedCache(2, NoExpiration)
+	sc.Set("key", "value", NoExpiration)
+	var buf bytes.Buffer
+	if err := sc.Save(&buf); err != nil {
+		f.Fatal(err)
+	}
+	f.Add(buf.Bytes())
+	f.Add([]byte{})
+	f.Add([]byte("not a gob stream"))
+	f.Fuzz(func(t *testing.T, data []byte) {
+		sc := newShardedCache(2, NoExpiration)
+		_ = sc.Load(bytes.NewReader(data))
+	})
+}

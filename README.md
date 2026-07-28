@@ -158,26 +158,48 @@ The latest release adds overflow protection, janitor control, and complete Shard
 
 ## Performance
 
-### Standard Cache
+Measured on Apple M4 Pro, Go 1.26, `go test -bench=. -benchmem -benchtime=1s`. All operations are zero-allocation:
+
+| Benchmark | ns/op | B/op | allocs/op |
+|---|---:|---:|---:|
+| Cache Get (not expiring) | 7.2 | 0 | 0 |
+| Cache Get (expiring) | 33.7 | 0 | 0 |
+| Cache Set | 13.6 | 0 | 0 |
+| Cache IncrementInt64 | 26.3 | 7 | 0 |
+| ShardedCache Get (not expiring) | 10.3 | 0 | 0 |
+| ShardedCache Set | 18.7 | 0 | 0 |
+| ShardedCache Increment | 28.6 | 8 | 0 |
+
+Under concurrent load the sharded cache pulls ahead by design (per-shard locks):
+
+| Concurrent benchmark (100 goroutines, own keys) | Cache | ShardedCache | Speedup |
+|---|---:|---:|---:|
+| Increment | 125.6 ns/op | 33.5 ns/op | ~3.7x |
+| Get (10k goroutines, not expiring) | 124.6 ns/op | 12.1 ns/op | ~10x |
+
+### When to use which
+
+**Standard cache** (`New`):
 
 - Suitable for most applications
-- Single lock for all operations
-- ~500,000 ops/sec with 100 concurrent goroutines
+- Single RWMutex for all operations
+- Fastest single-threaded reads
 
-### Sharded Cache
+**Sharded cache** (`NewSharded`):
 
 - Recommended for high-concurrency scenarios
-- Multiple independent caches with separate locks
-- ~2,000,000 ops/sec with 100 concurrent goroutines (4x improvement)
-- Configurable shard count (8, 16, 32, 64)
-
-**When to use sharded cache:**
-
+- Independent shards with separate locks (configurable: 8, 16, 32, 64)
 - ✅ High concurrent read/write operations (100+ goroutines)
 - ✅ Lock contention identified in profiling
 - ✅ Maximum throughput required
 
-See [Sharded Cache Guide](docs/sharded-cache.md) for benchmarks and best practices.
+Run them yourself:
+
+```bash
+go test -run=NONE -bench=. -benchmem
+```
+
+See [Sharded Cache Guide](docs/sharded-cache.md) for best practices.
 
 ## Thread Safety
 
