@@ -10,33 +10,29 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: ['1.25.12', '1.26.5']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
 
-      - name: Set up Go 1.25
-        uses: actions/setup-go@v5
+      - name: Set up Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v7.0.0
         with:
-          go-version: '1.25'
+          go-version: ${{ matrix.go-version }}
           cache: true
 
-      - name: Cache Go modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
       - name: Update dependencies
-        run: go mod tidy
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
 
       - name: Test with Coverage
         run: |
           # Exclude examples directory from tests and coverage
-          go test $(go list ./... | grep -v /examples/) -coverprofile=coverage.out -covermode=atomic
+          go test -race -count=1 $(go list ./... | grep -v /examples/) -coverprofile=coverage.out -covermode=atomic
 
       - name: Check Coverage
         run: |
@@ -51,7 +47,8 @@ jobs:
           GO111MODULE: on
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.6.0
+        if: matrix.go-version == '1.26.5'
+        uses: codecov/codecov-action@v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: coverage.out
@@ -60,15 +57,14 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Install golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest
-
-      - name: Run golangci-lint
-        run: golangci-lint run ./...
-        env:
-          GO111MODULE: on
+        if: matrix.go-version == '1.26.5'
+        uses: golangci/golangci-lint-action@v9.3.0
+        with:
+          version: v2.12.2
 
       - name: FOSSA Scan
-        uses: fossas/fossa-action@v1.7.0
+        if: matrix.go-version == '1.26.5'
+        uses: fossas/fossa-action@v2.0.0
         with:
           api-key: ${{ secrets.FOSSA_API_KEY }}
 
