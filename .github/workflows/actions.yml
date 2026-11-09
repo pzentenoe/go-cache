@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: ['1.25.12', '1.26.5']
+        go-version: ['1.25.14', '1.26.10']
 
     steps:
       - uses: actions/checkout@v7.0.1
@@ -47,8 +47,8 @@ jobs:
           GO111MODULE: on
 
       - name: Upload coverage reports to Codecov
-        if: matrix.go-version == '1.26.5'
-        uses: codecov/codecov-action@v7.0.0
+        if: matrix.go-version == '1.26.10'
+        uses: codecov/codecov-action@v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.out
@@ -57,13 +57,13 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Install golangci-lint
-        if: matrix.go-version == '1.26.5'
+        if: matrix.go-version == '1.26.10'
         uses: golangci/golangci-lint-action@v9.3.0
         with:
-          version: v2.12.2
+          version: v2.15.0
 
       - name: FOSSA Scan
-        if: matrix.go-version == '1.26.5'
+        if: matrix.go-version == '1.26.10'
         uses: fossas/fossa-action@v2.0.0
         with:
           api-key: ${{ secrets.FOSSA_API_KEY }}

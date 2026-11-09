@@ -20,14 +20,14 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: '1.25.12'
+          go-version: '1.25.14'
           cache: true
 
       - name: Run tests
         run: go test -race -count=1 $(go list ./... | grep -v /examples/)
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v7.2.3
+        uses: goreleaser/goreleaser-action@v7.3.0
         with:
           version: "~> v2"
           args: release --clean
