@@ -152,7 +152,7 @@ c.Close()
 
 ## Recent Updates
 
-The latest release (v1.4.0) adds sentinel errors for `errors.Is`, fixes several panic and race conditions in janitor lifecycle and typed operations, and deduplicates internals with generics — with full backward compatibility. See [CHANGELOG.md](CHANGELOG.md) for full version history and release notes.
+The latest release (v1.4.1) fixes shard lock leaks when Gob encoding panics, applies full-width deltas to generic integer mutations, makes janitor interval updates non-blocking, and prevents partial cache changes when a sharded load fails to decode. The previous release (v1.4.0) added sentinel errors for `errors.Is`, fixed several panic and race conditions in janitor lifecycle and typed operations, and deduplicated internals with generics — with full backward compatibility. See [CHANGELOG.md](CHANGELOG.md) for full version history and release notes.
 
 ## Performance
 
