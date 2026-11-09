@@ -27,3 +27,8 @@ go.work
 
 # GoReleaser output
 dist/
+
+# agent files
+.atl
+.codebase-memory
+.claude
