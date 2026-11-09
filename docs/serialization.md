@@ -185,6 +185,8 @@ err := sc2.LoadFile("cache.gob")
 
 ## Load Behavior
 
+`Load` decodes all data before applying items, so a decoding error leaves the cache unchanged by that load. For a sharded cache, applying successfully decoded items is not atomic with respect to concurrent cache operations.
+
 ### Merging with Existing Items
 
 `Load()` adds items from the file but does NOT overwrite existing items:

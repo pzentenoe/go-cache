@@ -159,13 +159,14 @@ func (sc *shardedCache) Save(w io.Writer) (err error) {
 	// Save each shard's items; value types are registered once across shards.
 	registered := make(map[reflect.Type]struct{})
 	for _, c := range sc.cs {
-		c.mu.RLock()
-		registerGobTypes(c.items, registered)
-		if err := enc.Encode(&c.items); err != nil {
-			c.mu.RUnlock()
+		if err := func() error {
+			c.mu.RLock()
+			defer c.mu.RUnlock()
+			registerGobTypes(c.items, registered)
+			return enc.Encode(&c.items)
+		}(); err != nil {
 			return err
 		}
-		c.mu.RUnlock()
 	}
 	return nil
 }
@@ -183,6 +184,8 @@ func (sc *shardedCache) SaveFile(fname string) error {
 
 // Load adds (Gob-serialized) cache items from an io.Reader, excluding any
 // items with keys that already exist (and haven't expired) in the current cache.
+// All shards are decoded before any items are applied; application is not atomic
+// with respect to concurrent cache operations.
 func (sc *shardedCache) Load(r io.Reader) error {
 	dec := gob.NewDecoder(r)
 
@@ -196,13 +199,14 @@ func (sc *shardedCache) Load(r io.Reader) error {
 		return fmt.Errorf("shard count mismatch: saved with %d shards, current cache has %d", numShards, len(sc.cs))
 	}
 
-	// Load items for each shard
-	for i := 0; i < numShards; i++ {
-		items := map[string]Item{}
-		if err := dec.Decode(&items); err != nil {
+	// Decode every shard before modifying the cache.
+	shards := make([]map[string]Item, numShards)
+	for i := range shards {
+		if err := dec.Decode(&shards[i]); err != nil {
 			return err
 		}
-
+	}
+	for _, items := range shards {
 		// Re-hash each item to the correct shard
 		for k, v := range items {
 			c := sc.bucket(k)

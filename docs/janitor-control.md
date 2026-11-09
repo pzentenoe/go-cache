@@ -55,7 +55,7 @@ c.ResumeJanitor()
 
 ### SetJanitorInterval(d time.Duration)
 
-Dynamically changes the cleanup interval. Non-positive intervals are ignored.
+Dynamically changes the cleanup interval. Non-positive intervals are ignored. Updates do not wait for the janitor; pending updates are coalesced and the latest requested interval is applied after the current cleanup completes.
 
 ```go
 // Change to faster cleanup

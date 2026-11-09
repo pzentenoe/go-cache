@@ -9,41 +9,49 @@ import (
 // janitor periodically deletes expired items. A single implementation serves
 // both Cache and shardedCache via the cleanup function.
 type janitor struct {
-	interval       time.Duration
-	stop           chan struct{}
-	updateInterval chan time.Duration
-	done           chan struct{} // closed when Run exits
-	cleanup        func()
-	mu             sync.Mutex
-	paused         bool
+	interval        time.Duration
+	stop            chan struct{}
+	updateInterval  chan struct{}
+	pendingInterval time.Duration
+	done            chan struct{} // closed when Run exits
+	cleanup         func()
+	mu              sync.Mutex
+	paused          bool
 }
 
 func newJanitor(ci time.Duration, cleanup func()) *janitor {
 	return &janitor{
 		interval:       ci,
 		stop:           make(chan struct{}, 1),
-		updateInterval: make(chan time.Duration, 1),
+		updateInterval: make(chan struct{}, 1),
 		done:           make(chan struct{}),
 		cleanup:        cleanup,
 	}
 }
 
-// setInterval applies a new cleanup interval. It never blocks: if the janitor
-// already exited, the update is dropped via the done channel.
+// setInterval queues the latest positive interval without waiting for the janitor.
 func (j *janitor) setInterval(d time.Duration) {
 	if d <= 0 {
 		return
 	}
+	j.mu.Lock()
+	defer j.mu.Unlock()
 	select {
-	case j.updateInterval <- d:
 	case <-j.done:
+		return
+	default:
+	}
+	j.pendingInterval = d
+	select {
+	case j.updateInterval <- struct{}{}:
+	default:
 	}
 }
 
 func (j *janitor) Run() {
 	defer close(j.done)
 	ticker := time.NewTicker(j.interval)
-	defer ticker.Stop()
+	defer func() { ticker.Stop() }()
 
 	for {
 		select {
@@ -54,9 +62,10 @@ func (j *janitor) Run() {
 			if !paused {
 				j.cleanup()
 			}
-		case newInterval := <-j.updateInterval:
+		case <-j.updateInterval:
 			ticker.Stop()
 			j.mu.Lock()
+			newInterval := j.pendingInterval
 			j.interval = newInterval
 			j.mu.Unlock()
 			ticker = time.NewTicker(newInterval)

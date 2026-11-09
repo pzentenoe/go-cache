@@ -11,27 +11,27 @@ func (c *Cache) Decrement(k string, n int64) error {
 	return c.decrement(k, func(val any) (any, error) {
 		switch val := val.(type) {
 		case int:
-			return decrementSigned[int](k, val, int(n))
+			return genericSignedDelta(k, val, n, true)
 		case int8:
-			return decrementSigned[int8](k, val, int8(n))
+			return genericSignedDelta(k, val, n, true)
 		case int16:
-			return decrementSigned[int16](k, val, int16(n))
+			return genericSignedDelta(k, val, n, true)
 		case int32:
-			return decrementSigned[int32](k, val, int32(n))
+			return genericSignedDelta(k, val, n, true)
 		case int64:
-			return decrementSigned[int64](k, val, n)
+			return genericSignedDelta(k, val, n, true)
 		case uint:
-			return decrementUnsigned[uint](k, val, uint(n))
+			return genericUnsignedDelta(k, val, n, true)
 		case uintptr:
-			return decrementUnsigned[uintptr](k, val, uintptr(n))
+			return genericUnsignedDelta(k, val, n, true)
 		case uint8:
-			return decrementUnsigned[uint8](k, val, uint8(n))
+			return genericUnsignedDelta(k, val, n, true)
 		case uint16:
-			return decrementUnsigned[uint16](k, val, uint16(n))
+			return genericUnsignedDelta(k, val, n, true)
 		case uint32:
-			return decrementUnsigned[uint32](k, val, uint32(n))
+			return genericUnsignedDelta(k, val, n, true)
 		case uint64:
-			return decrementUnsigned[uint64](k, val, uint64(n))
+			return genericUnsignedDelta(k, val, n, true)
 		case float32:
 			return decrementFloat[float32](k, val, float32(n))
 		case float64:

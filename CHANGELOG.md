@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Release shard locks when Gob encoding panics during sharded `Save`.
+- Apply generic integer increments and decrements using the full signed delta, preserving stored types and rejecting out-of-range results.
+- Coalesce janitor interval updates without blocking eviction callbacks.
+- Decode all shards before applying a sharded `Load`, preventing partial changes on decoding errors; application is not atomic against concurrent operations.
+- Correct repository badges and remove the stale current coverage figure.
+
 ## [1.4.0] - 2026-07-28
 
 ### Added

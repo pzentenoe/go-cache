@@ -1,13 +1,11 @@
 # go-cache
 
-[![CI](https://github.com/pzentenoe/chilerut/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/pzentenoe/chilerut/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/pzentenoe/chilerut/branch/main/graph/badge.svg)](https://codecov.io/gh/pzentenoe/chilerut)
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/pzentenoe/chilerut.svg)](https://pkg.go.dev/github.com/pzentenoe/chilerut)
-[![Go 1.18+](https://img.shields.io/badge/go-%3E%3D1.18-blue)](go.mod)
+[![CI](https://github.com/pzentenoe/go-cache/actions/workflows/actions.yml/badge.svg?branch=main)](https://github.com/pzentenoe/go-cache/actions/workflows/actions.yml)
+[![codecov](https://codecov.io/gh/pzentenoe/go-cache/branch/main/graph/badge.svg)](https://codecov.io/gh/pzentenoe/go-cache)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/pzentenoe/go-cache.svg)](https://pkg.go.dev/github.com/pzentenoe/go-cache)
+[![Go 1.25+](https://img.shields.io/badge/go-%3E%3D1.25-blue)](go.mod)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-[![FOSSA License](https://app.fossa.com/api/projects/custom%2B60042%2Fgithub.com%2Fpzentenoe%2Fchilerut.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B60042%2Fgithub.com%2Fpzentenoe%2Fchilerut?ref=badge_shield&issueType=license)
-[![FOSSA Security](https://app.fossa.com/api/projects/custom%2B60042%2Fgithub.com%2Fpzentenoe%2Fchilerut.svg?type=shield&issueType=security)](https://app.fossa.com/projects/custom%2B60042%2Fgithub.com%2Fpzentenoe%2Fchilerut?ref=badge_shield&issueType=security)
 
 High-performance, thread-safe in-memory cache for Go with expiration support and advanced features.
 
@@ -250,7 +248,7 @@ We welcome contributions! Please:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Add tests for new functionality
-4. Ensure tests pass and coverage is maintained (currently **92.9%**):
+4. Ensure tests pass and check coverage:
    ```bash
    go test -race ./...        # Run with race detector
    go test -cover ./...       # Check coverage

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCache_Save(t *testing.T) {
@@ -46,7 +47,7 @@ func TestCache_SaveFile(t *testing.T) {
 
 		// Load the file and verify its contents
 		file, err := os.Open(fileName)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		defer file.Close()
 
 		dec := gob.NewDecoder(file)

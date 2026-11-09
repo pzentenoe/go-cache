@@ -11,27 +11,27 @@ func (c *Cache) Increment(k string, n int64) error {
 	return c.increment(k, func(val any) (any, error) {
 		switch val := val.(type) {
 		case int:
-			return incrementSigned[int](k, val, int(n))
+			return genericSignedDelta(k, val, n, false)
 		case int8:
-			return incrementSigned[int8](k, val, int8(n))
+			return genericSignedDelta(k, val, n, false)
 		case int16:
-			return incrementSigned[int16](k, val, int16(n))
+			return genericSignedDelta(k, val, n, false)
 		case int32:
-			return incrementSigned[int32](k, val, int32(n))
+			return genericSignedDelta(k, val, n, false)
 		case int64:
-			return incrementSigned[int64](k, val, n)
+			return genericSignedDelta(k, val, n, false)
 		case uint:
-			return incrementUnsigned[uint](k, val, uint(n))
+			return genericUnsignedDelta(k, val, n, false)
 		case uintptr:
-			return incrementUnsigned[uintptr](k, val, uintptr(n))
+			return genericUnsignedDelta(k, val, n, false)
 		case uint8:
-			return incrementUnsigned[uint8](k, val, uint8(n))
+			return genericUnsignedDelta(k, val, n, false)
 		case uint16:
-			return incrementUnsigned[uint16](k, val, uint16(n))
+			return genericUnsignedDelta(k, val, n, false)
 		case uint32:
-			return incrementUnsigned[uint32](k, val, uint32(n))
+			return genericUnsignedDelta(k, val, n, false)
 		case uint64:
-			return incrementUnsigned[uint64](k, val, uint64(n))
+			return genericUnsignedDelta(k, val, n, false)
 		case float32:
 			return incrementFloat[float32](k, val, float32(n))
 		case float64:

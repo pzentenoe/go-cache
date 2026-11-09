@@ -132,3 +132,49 @@ func decrementFloat[T floats](k string, v, n T) (T, error) {
 	}
 	return diff, nil
 }
+
+// deltaMagnitude avoids negating MinInt64 in the signed domain.
+func deltaMagnitude(n int64) uint64 {
+	if n < 0 {
+		return uint64(-(n + 1)) + 1
+	}
+	return uint64(n)
+}
+
+func deltaError(k string, subtract bool) error {
+	if subtract {
+		return keyErrorf(ErrUnderflow, errUnderflowFormat, k)
+	}
+	return keyErrorf(ErrOverflow, errOverflowFormat, k)
+}
+
+func genericSignedDelta[T signed](k string, v T, n int64, subtract bool) (T, error) {
+	min, max := signedBounds[T]()
+	value := int64(v)
+	magnitude := deltaMagnitude(n)
+	down := (n < 0) != subtract
+	if down {
+		if magnitude > uint64(value)-uint64(min) {
+			return v, deltaError(k, subtract)
+		}
+		return T(int64(uint64(value) - magnitude)), nil
+	}
+	if magnitude > uint64(max)-uint64(value) {
+		return v, deltaError(k, subtract)
+	}
+	return T(int64(uint64(value) + magnitude)), nil
+}
+
+func genericUnsignedDelta[T unsigned](k string, v T, n int64, subtract bool) (T, error) {
+	value, magnitude := uint64(v), deltaMagnitude(n)
+	if (n < 0) != subtract {
+		if magnitude > value {
+			return v, deltaError(k, subtract)
+		}
+		return T(value - magnitude), nil
+	}
+	if magnitude > unsignedMax[T]()-value {
+		return v, deltaError(k, subtract)
+	}
+	return T(value + magnitude), nil
+}
